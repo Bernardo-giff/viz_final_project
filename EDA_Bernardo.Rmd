@@ -1,0 +1,647 @@
+---
+title: "Final report"
+output: html_document
+date: "2023-08-15"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(ggplot2)
+library(tidyverse)
+```
+
+## R Markdown
+
+# Introduction
+
+In the dynamic realm of real estate investment, seizing strategic
+opportunities is crucial. This analysis aims to empower Real Estate
+Investors specializing in converting properties into Airbnb listings by
+providing insights for maximizing their Return on Investment (ROI). By
+utilizing Inside Airbnb data, we will unravel valuable patterns and
+trends to guide investors toward underpriced neighborhoods and optimal
+listing strategies. The R markdown and supporting files are stored and
+managed in the following git repository:
+<https://github.com/Bernardo-giff/viz_final_project.git>
+
+# Purpose
+
+The primary purpose of this analysis is to identify promising investment
+opportunities within the Airbnb market. By investigating key hypotheses
+related to ROI comparisons among cities, minimum stay durations, and
+listing types, we aim to equip investors with actionable insights to
+optimize their investment decisions. Target Audience Real Estate
+Investors who buy Houses to turn into Airbnb. To maximize their ROI and
+find underpriced neighborhoods.
+
+# Sources
+
+Listing and calendar data for San Francisco, New York City, and Austin.
+Inflation index for the USA
+<https://www-statista-com.iclibezp1.cc.ic.ac.uk/chart/13755/rental-price-change-in-nyc-due-to-airbnb/>
+<https://www.economist.com/briefing/2023/03/16/texass-latest-boom-is-its-biggest-yet>
+<https://advantage-marketline-com.iclibezp1.cc.ic.ac.uk/CityAnalysis/Summary/austin#>
+
+# Hypothesis
+
+Return on Investment for Austin is better than for San Francisco and New
+York. One of our hypotheses is that the return on investment for houses
+bought to become Airbnb rent outs in Austin might be better than similar
+investments in other big cities in the US. This is motivated by the
+recent surge in growth in Texas, both in terms of population and GDP.
+This might represent a good investment opportunity for people looking to
+invest in Airbnb focused properties.
+
+In order to make this assessment, we will need to come up with an ROI
+metric for Airbnb in different places. This can be achieved by dividing
+the current yelds of Airbnb renting prices by the average house price
+per neighborhood in Austin and then the other two cities selected: NYC
+and San Franscisco. The idea is to show that the present ROI in Austin
+make sense. This can generate valuable insight to investors becomes
+several studies point to the continuation of the growth of Texas, with
+Austin leading the pack.
+
+Initial EDA
+
+We start by loading the dataframes that store the calendar information
+and binding them together\
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+
+# Savings colors that are on Airbnb's theme
+airbnb_color1 <- "#FF5A60"
+airbnb_color2 <- "#00A699"
+airbnb_color3 <- "#FC642D"
+airbnb_color4 <- "#484848"
+airbnb_color5 <- "#767676"
+```
+
+Next we repeat the process for the listings data
+
+```{r}
+# Read NYC listings
+listings_nyc <- read.csv('data/listings/listings_nyc.csv', stringsAsFactors = FALSE)
+listings_nyc$city <- "NYC"
+
+# Read SF listings
+listings_sf <- read.csv('data/listings/listings_sf.csv', stringsAsFactors = FALSE)
+listings_sf$city <- "SF"
+
+# Read Austin listings
+listings_austin <- read.csv('data/listings/listings_austin.csv', stringsAsFactors = FALSE)
+listings_austin$city <- 'austin'
+
+# Change the 'neighbourhood_cleansed' column to character (string)
+listings_nyc <- listings_nyc %>%
+  mutate(neighbourhood_cleansed = as.character(neighbourhood_cleansed))
+
+listings_sf <- listings_sf %>%
+  mutate(neighbourhood_cleansed = as.character(neighbourhood_cleansed))
+
+listings_austin <- listings_austin %>%
+  mutate(neighbourhood_cleansed = as.character(neighbourhood_cleansed))
+
+# Join all dataframes
+listings <- bind_rows(listings_nyc, listings_sf, listings_austin)
+```
+
+We will be mainly working with the listings data at first. Therefore, we
+check the values of the dataset to get insight on their distributions
+and possible data preparation tasks.
+
+```{r}
+# Starting EDA
+
+# Summarize the listings data
+summary(listings)
+```
+
+```{r}
+# Starting EDA
+
+# Summarize the listings data
+summary(listings)
+
+# We see that price is not in the summary column
+
+# Display the first few rows of the 'price' column
+head(listings$price)
+
+# That's because it's saved with the $ and commas (currency)
+# Removing dollar sign
+listings$price <- gsub("\\$", "", listings$price)
+
+# Removing commas
+listings$price <- gsub(",", "", listings$price)
+
+# Changing the 'price' column type to numeric
+listings$price <- as.numeric(listings$price)
+
+summary(listings$price)
+
+# We see that we have some large outliers, which could be errors. We will investigate them shortly
+
+# Calculate one-year return on investment (ROI) for listings
+listings$one_year_roi <- (365 - listings$availability_365) * listings$price
+
+```
+
+```{r}
+library(ggplot2)
+
+# Create a boxplot of the 'price' distribution per city
+ggplot(listings, aes(x = city, y = price)) +
+  geom_boxplot() +
+  labs(title = "Price distribution per city") +
+  theme_minimal()
+
+```
+
+We can't really get good insights from the boxplots as they are because
+of the outliers. We will remove them to get a better look
+
+```{r}
+
+
+# Create a boxplot of the 'price' distribution per city without outliers
+ggplot(listings, aes(x = city, y = price)) +
+  geom_boxplot(outlier.shape = NA, fill = airbnb_color1) +
+  labs(title = "Price distribution per city without outliers") +
+  theme_minimal() +
+  coord_cartesian(ylim = quantile(listings$price, c(0.25, 0.75)) + c(-1, 1.5) * IQR(listings$price))
+
+```
+
+```{r}
+
+
+# Calculate the total count of each property type across all cities
+property_type_counts <- listings %>%
+  count(property_type)
+
+# Get the top ten property types based on total count
+top_property_types <- property_type_counts %>%
+  arrange(desc(n)) %>%
+  head(10) %>%
+  pull(property_type)
+
+# Filter the DataFrame to include only the top property types
+filtered_listings <- listings %>%
+  filter(property_type %in% top_property_types)
+
+# Set the order of property types based on their total count
+property_type_order <- property_type_counts %>%
+  filter(property_type %in% top_property_types) %>%
+  arrange(desc(n)) %>%
+  pull(property_type)
+
+# Set the style for the plot (if needed)
+theme_set(theme_minimal())
+
+# Create a vertical countplot faceted by 'city' using ggplot2 with switched axes
+ggplot(filtered_listings, aes(x = property_type, fill = city)) +
+  geom_bar() +
+  facet_wrap(~ city, scales = "free_x", ncol = 3) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "Top Ten Property Types Count Faceted by City",
+       y = "Count",
+       x = "Property Type") +
+  geom_text(stat = "count", aes(label = paste(round(..count.. / 1000, 1), "k")), vjust = -0.2) +
+  guides(fill = guide_legend(title = "City")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  coord_flip()
+
+
+```
+
+Based on the graph above, we filter out some of the property types
+
+```{r}
+# List of relevant property types
+relevant_property_types <- c('Entire rental unit', 'Private room in rental unit', 'Entire home', 'Private room in home', 'Entire condo')
+
+# Filter the listings for the specified property type
+filtered_listings <- listings %>%
+  filter(property_type %in% relevant_property_types)
+
+# Create a boxplot of the 'price' distribution per city without outliers
+ggplot(filtered_listings, aes(x = city, y = price)) +
+  geom_boxplot(outlier.shape = NA, fill = airbnb_color1) +
+  labs(title = "Price distribution per city without outliers",
+       x = "City",
+       y = "Price") +
+  theme_minimal() + 
+  coord_cartesian(ylim = quantile(listings$price, c(0.25, 0.75)) + c(-1, 1.5) * IQR(listings$price))
+
+```
+
+To be even more specific, we look at Private rooms in rental units
+
+```{r}
+# Filter the listings for the specified property type
+filtered_listings <- listings %>%
+  filter(property_type == 'Private room in rental unit')
+
+# Create a boxplot of the 'price' distribution per city without outliers
+ggplot(filtered_listings, aes(x = city, y = price)) +
+  geom_boxplot(outlier.shape = NA, fill = airbnb_color1) +
+  labs(title = "Price distribution per city without outliers",
+       x = "City",
+       y = "Price") +
+  theme_minimal() + 
+  coord_cartesian(ylim = quantile(filtered_listings$price, c(0.25, 0.75)) + c(-1, 1.5) * IQR(filtered_listings$price))
+```
+
+```{r}
+
+# Define relevant property types
+relevant_property_types <- c('Entire rental unit', 'Private room in rental unit', 'Entire home', 'Private room in home', 'Entire condo')
+
+# Filter the listings for the specified property types
+filtered_listings <- listings %>%
+  filter(property_type %in% relevant_property_types)
+
+# Create a faceted boxplot by city
+p <- ggplot(filtered_listings, aes(x = property_type, y = price)) +
+  geom_boxplot(outlier.shape = NA, fill = airbnb_color1) +
+  facet_grid(. ~ city) +
+  labs(title = "Price distribution per city without outliers",
+       x = "Property Type",
+       y = "Price") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  coord_cartesian(ylim = quantile(filtered_listings$price, c(0.25, 0.75)) + c(-1, 1.5) * IQR(filtered_listings$price))
+
+# Adjust the plot title position
+p <- p + theme(plot.title = element_text(hjust = 0.5))
+
+# Print the plot
+print(p)
+
+```
+
+Next we try to get even more specific, to make sure we are making fair
+comparisons, and we look at entire rental units by the number of
+bedrooms
+
+```{r}
+# Define relevant property types
+relevant_property_types <- c('Entire rental unit')
+
+
+
+city_colors <- c("NYC" = airbnb_color1, "SF" = airbnb_color2, 
+                 "austin" = airbnb_color3)
+
+# Filter the listings for the specified property type and bedrooms criteria
+filtered_listings <- listings %>%
+  filter(property_type %in% relevant_property_types, bedrooms < 4)
+
+# Create a faceted boxplot by city
+p <- ggplot(filtered_listings, aes(x = factor(bedrooms), y = price, fill = city)) +
+  geom_boxplot(outlier.shape = NA) +
+  labs(title = "Price distribution per city without outliers",
+       x = "Number of Bedrooms",
+       y = "Price") +
+  scale_fill_manual(values = city_colors) + 
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  coord_cartesian(ylim = quantile(filtered_listings$price, c(0.25, 0.75)) + c(-1, 1.5) * IQR(filtered_listings$price))
+
+# Adjust the plot title position
+p <- p + theme(plot.title = element_text(hjust = 0.5))
+
+print(p)
+
+```
+
+Next we prepare the Rent data from Zumper
+
+```{r}
+#Importing and cleaning up the rent dataset from https://www.zumper.com/blog/rental-price-data/
+
+# Import the CSV file
+rent_median_prices <- read_csv("data/rent_median_prices.csv", col_types = cols(.default = "c"), skip = 0)
+
+# Set column names and correct data types
+colnames(rent_median_prices) <- c("Ranking", "Movement", "City", "Price_1_bedroom", "Price_2_bedroom")
+rent_median_prices$Price_1_bedroom <- as.numeric(gsub("\\$|,", "", rent_median_prices$Price_1_bedroom))
+rent_median_prices$Price_2_bedroom <- as.numeric(gsub("\\$|,", "", rent_median_prices$Price_2_bedroom))
+
+```
+
+```{r}
+library(ggplot2)
+
+# Define the average price
+average_price <- mean(rent_median_prices$Price_1_bedroom, na.rm = TRUE)
+
+# Extract the 'Price 1 bedroom' value for 'Austin, TX'
+austin_price <- rent_median_prices$Price_1_bedroom[rent_median_prices$City == 'Austin, TX']
+
+# Extract the 'Price 1 bedroom' value for NYC
+ny_price <- rent_median_prices$Price_1_bedroom[rent_median_prices$City == 'New York, NY']
+
+# Extract the 'Price 1 bedroom' value for San Francisco
+sf_price <- rent_median_prices$Price_1_bedroom[rent_median_prices$City == 'San Francisco, CA']
+
+# Create a ggplot object for the line plot
+p <- ggplot(rent_median_prices, aes(factor(City, levels = unique(rent_median_prices$City)), y = Price_1_bedroom)) +
+  geom_point(color = airbnb_color4, size = 1.5) +
+  geom_hline(yintercept = average_price, color = "blue", linetype = "dashed", size = 1) +
+  geom_point(data = subset(rent_median_prices, City %in% c("Austin, TX", "New York, NY", "San Francisco, CA")),
+             aes(color = City), size = 3) +
+  
+  labs(title = 'Median rent prices for 1 bedroom apartments',
+       x = 'City',
+       y = 'Price 1 bedroom') +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, 
+                                   vjust = 0.5, size=5),
+        axis.title = element_blank(),
+        legend.position = "none",
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  scale_color_manual(values = c("Austin, TX" = airbnb_color1, "New York, NY" = airbnb_color2, "San Francisco, CA" = airbnb_color3)) +
+  scale_y_continuous(labels = scales::dollar_format())  +
+# Format y-axis as dollars (in thousands)
+annotate("text", x = "Austin, TX", y = austin_price + 50, label = paste("Austin, TX:", scales::dollar(austin_price), sep = " "),
+                   color = "black", size = 3, hjust = 0, vjust = 0) +
+  annotate("text", x = "New York, NY", y = ny_price + 50, label = paste("New York, NY:", scales::dollar(ny_price), sep = " "),
+           color = "black", size = 3, hjust = 0, vjust = 0) +
+  annotate("text", x = "San Francisco, CA", y = sf_price - 50, label = paste("San Francisco, CA:", scales::dollar(sf_price), sep = " "),
+           color = "black", size = 3, hjust = 0, vjust = 1) +
+  annotate("text", x = "San Antonio, TX", y = average_price + 200, label = paste("National average:", scales::dollar(average_price), sep = " "),
+           color = "black", size = 3, hjust = 0, vjust = 1)
+
+# Adjust plot size
+options(repr.plot.width = 14, repr.plot.height = 6)
+
+# Print the plot
+print(p)
+
+```
+
+```{r}
+#Define the turnover by city
+turnover <- c(3980*12, 3000*12, 1560*12)
+city <- c("NYC", "SF", "Austin")
+
+# Calculate median prices for 1-bedroom apartments in NYC, SF, and Austin
+ny_median <- median(listings$listings[which(listings$city == 'NYC' & listings$bedrooms == 1)], na.rm = TRUE)
+sf_median <- median(listings$listings[which(listings$city == 'SF' & listings$bedrooms == 1)], na.rm = TRUE)
+austin_median <- median(listings$listings[which(listings$city == 'Austin' & listings$bedrooms == 1)], na.rm = TRUE)
+
+# Extract the median rent prices for 1-bedroom apartments in NYC, SF, and Austin
+rent_austin <- rent_median_prices$Price_1_bedroom[rent_median_prices$City == 'Austin, TX'][1]
+rent_sf <- rent_median_prices$Price_1_bedroom[rent_median_prices$City == 'San Francisco, CA'][1]
+rent_ny <- rent_median_prices$Price_1_bedroom[rent_median_prices$City == 'New York, NY'][1]
+
+
+```
+
+```{r}
+# Define a function to calculate the price_night/median_rent
+calculate_price <- function(row) {
+  if (row$city == 'austin') {
+    return(row$price / rent_austin)
+  } else if (row$city == 'NYC') {
+    return(row$price / rent_ny)
+  } else {
+    return(row$price / rent_sf)
+  }
+}
+
+# Apply the function to create a new column 'price_night/median_rent'
+listings$price_night_median_rent <- sapply(1:nrow(listings), function(i) calculate_price(listings[i,]))
+
+# Assuming 'listings' is your data frame and 'rent_austin', 'rent_ny', and 'rent_sf' are defined variables
+
+```
+
+```{r}
+# Create subplots with two columns
+
+
+listings_filtered <- listings %>%
+                     filter('bedrooms'==1)
+p1 <- ggplot(listings_filtered, aes(x = city, y = price_night_median_rent)) +
+  geom_boxplot(fill = airbnb_color1, outlier.shape = NA) +
+  labs(title = "Price per night / median rent per city without outliers") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+
+p2 <- ggplot(listings_filtered, aes(x = city, y = price)) +
+  geom_boxplot(fill = airbnb_color2, outlier.shape = NA) +
+  labs(title = "Price distribution per city without outliers") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+
+plot(p1)
+
+```
+
+How does this relate to Airbnb data? In order to know this, we need to
+answer to fundamental question: Is buying a home to turn it into an
+Airbnb overall profitable? How much more profitable is it than other
+investments? Or in terms of diversifying and owning property?
+
+To answer this, I need to answer how much money does an Airbnb make on
+average a year. Then, we look into this return on the focus cities.
+
+The plot above shows that the Airbnb prices are above the median rent
+prices. Can we prove that when the prices inevitably go up, so will the
+Airbnb price? Or is this a proof that in comparison to rents, Airbnb's
+are more profitable in Austin than in Nyc or SF
+
+There are 1763 listings with the full year taken
+
+We need to only consider the listings that were always available (taken
+or not) for the span of the data
+
+```{r}
+# Your code for filtering the data remains the same
+relevant_house_types <- c('Entire rental unit')
+
+filtered_listings <- listings %>%
+  filter(property_type %in% relevant_house_types,
+         bedrooms == 1,
+         availability_365 < 300,
+         price > 20)
+
+# Create a boxplot faceted by city
+p <- ggplot(filtered_listings, aes(x = city, y = one_year_roi)) +
+  geom_boxplot(fill = airbnb_color1, outlier.shape = NA) +
+  labs(title = "Price distribution per city without outliers") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+
+# Calculate and annotate median and average for each city
+medians <- filtered_listings %>%
+  group_by(city) %>%
+  summarize(median = median(one_year_roi),
+            average = mean(one_year_roi))
+
+p <- p +
+  geom_text(data = medians, aes(x = city, y = median, label = paste("Median:", format(median, nsmall = 2)), vjust = -0.5), color = "blue", size = 3) +
+  geom_text(data = medians, aes(x = city, y = average, label = paste("Avg:", format(average, nsmall = 2)), vjust = 0.5), color = "green", size = 3)
+
+
+print(p)
+```
+
+```{r}
+# Filter the listings based on conditions
+filtered_listings <- listings %>%
+  filter(property_type %in% relevant_house_types,
+         bedrooms == 1,
+         price > 20)
+
+# Group by city and availability_365, calculate median and mean of one_year_roi
+grouped_filtered_listings <- filtered_listings %>%
+  group_by(city, availability_365) %>%
+  summarize(median_roi = median(one_year_roi),
+            mean_roi = mean(one_year_roi)) %>%
+  arrange(availability_365)
+
+# Pivot the table to have cities as columns
+grouped_filtered_listings <- grouped_filtered_listings %>%
+  pivot_wider(names_from = city, values_from = c(median_roi, mean_roi), names_sep = "_")
+
+# Calculate Airbnb ROI for each city
+grouped_filtered_listings <- grouped_filtered_listings %>%
+  mutate(NYC_airbnb_roi = (NYC - rent_ny * 12) / (rent_ny * 12),
+         SF_airbnb_roi = (SF - rent_sf * 12) / (rent_sf * 12),
+         austin_airbnb_roi = (austin - rent_austin * 12) / (rent_austin * 12))
+```
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+
+# Create empty vectors to store ROI values
+airbnb_roi_nyc <- c()
+airbnb_roi_sf <- c()
+airbnb_roi_austin <- c()
+
+# Loop through a range of values from 10 to 365
+for (i in 10:365) {
+  filtered_listings <- listings %>%
+    filter(property_type %in% relevant_house_types,
+           bedrooms == 1,
+           availability_365 < i,
+           price > 20)
+  
+  # Group by city and calculate median ROI
+  medians <- filtered_listings %>%
+    group_by(city) %>%
+    summarize(median_roi = median(one_year_roi))
+  
+  # Calculate Airbnb ROI for each city and store in vectors
+  airbnb_roi_nyc <- c(airbnb_roi_nyc, ((medians$median_roi[1] - rent_ny * 12) / (rent_ny * 12)))
+  airbnb_roi_sf <- c(airbnb_roi_sf, ((medians$median_roi[2] - rent_sf * 12) / (rent_sf * 12)))
+  airbnb_roi_austin <- c(airbnb_roi_austin, ((medians$median_roi[3] - rent_austin * 12) / (rent_austin * 12)))
+}
+
+# Create a data frame for plotting
+plot_data <- data.frame(Nights = 10:365, 
+                        ROI_NYC = airbnb_roi_nyc, 
+                        ROI_SF = airbnb_roi_sf, 
+                        ROI_Austin = airbnb_roi_austin)
+
+# Create a line plot
+p <- ggplot(plot_data, aes(x = Nights)) +
+  geom_line(aes(y = ROI_NYC), color = airbnb_color1, linetype = "solid", size = 1, label = "ROI NYC") +
+  geom_line(aes(y = ROI_SF), color = airbnb_color2, linetype = "solid", size = 1, label = "ROI SF") +
+  geom_line(aes(y = ROI_Austin), linetype = "solid", size = 1, label = "ROI Austin") +
+  labs(title = "ROI vs. Number of Nights Available",
+       x = "Number of Nights Available",
+       y = "ROI %") +
+  theme_minimal() +
+  theme(legend.position = "top") +
+  scale_x_continuous(breaks = seq(0, 365, by = 30)) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  geom_vline(xintercept = 365 - which.min(airbnb_roi_nyc), linetype = "dotted", color = "red") +
+  geom_vline(xintercept = 365 - which.min(airbnb_roi_sf), linetype = "dotted", color = "blue") +
+  geom_vline(xintercept = 365 - which.min(airbnb_roi_austin), linetype = "dotted", color = "green") +
+  annotate("text", x = 365 - which.min(airbnb_roi_nyc), y = 0.15, label = "ROI NYC", color = "red") +
+  annotate("text", x = 365 - which.min(airbnb_roi_sf), y = 0.2, label = "ROI SF", color = "blue") +
+  annotate("text", x = 365 - which.min(airbnb_roi_austin), y = 0.25, label = "ROI Austin", color = "green")
+
+# Show the plot
+print(p)
+
+```
+
+## 
+
+Creating the map visuals
+
+```{r}
+# Load necessary libraries
+library(sf)
+library(readr)
+
+# Replace 'your-geojson-file.geojson' with the actual path to your GeoJSON file
+gdf <- st_read('neighbourhoods.geojson')
+
+# Access specific columns, e.g., 'geometry' or 'name'
+geometries <- gdf$geometry
+names <- gdf$name  # Assuming 'name' is the column you want to access
+
+# Turn the 'neighbourhood' column to integer
+gdf$neighbourhood <- as.integer(gdf$neighbourhood)
+```
+
+```{r}
+# Filter the listings for Austin
+listings_austin <- listings %>%
+  filter(city == 'austin')
+
+# Group by 'neighbourhood_cleansed' and calculate median values
+median_roi_by_neighbourhood <- listings_austin %>%
+  group_by(neighbourhood_cleansed) %>%
+  summarise(median_one_year_roi = median(one_year_roi),
+            median_price = median(price),
+            n_listings = n()) %>%
+  filter(n_listings > 20)  # Filtering out neighbourhoods with less than 20 listings
+
+# Change the data type of 'neighbourhood_cleansed' to integer
+median_roi_by_neighbourhood$neighbourhood_cleansed <- as.integer(median_roi_by_neighbourhood$neighbourhood_cleansed)
+
+# Merge the geojson neighborhood data with the aggregated one_year_roi
+merged_gdf <- left_join(gdf, median_roi_by_neighbourhood, by = c("neighbourhood" = "neighbourhood_cleansed"))
+
+# Drop rows with NA neighborhoods
+merged_gdf <- merged_gdf %>%
+  filter(!is.na(n_listings))
+```
+
+## 
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(sf)
+
+# Create the plot
+p <- ggplot() +
+  geom_sf(data = merged_gdf, aes(fill = median_one_year_roi), color = "0.8", size = 0.8) +
+  scale_fill_gradientn(colors = terrain.colors(10)) +
+  labs(title = "Median ROI per Region") +
+  scale_fill_gradientn(colors = c(airbnb_color2, airbnb_color1)) +
+  theme_void() +
+  theme(legend.position = "right")  # You can adjust the legend position as needed
+
+# Display the plot
+print(p)
+
+```
