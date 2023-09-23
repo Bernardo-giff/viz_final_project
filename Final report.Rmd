@@ -627,12 +627,12 @@ for (i in 10:365) {
   # Group by city and calculate median ROI
   medians <- filtered_listings %>%
     group_by(city) %>%
-    summarize(median_roi = median(one_year_roi))
+    summarize(median_revenue_pa = median(revenue_pa))
   
   # Calculate Airbnb ROI for each city and store in vectors
-  airbnb_roi_nyc <- c(airbnb_roi_nyc, ((medians$median_roi[1] - rent_ny * 12) / (rent_ny * 12)))
-  airbnb_roi_sf <- c(airbnb_roi_sf, ((medians$median_roi[2] - rent_sf * 12) / (rent_sf * 12)))
-  airbnb_roi_austin <- c(airbnb_roi_austin, ((medians$median_roi[3] - rent_austin * 12) / (rent_austin * 12)))
+  airbnb_roi_nyc <- c(airbnb_roi_nyc, ((medians$median_revenue_pa[1] - rent_ny * 12) / (rent_ny * 12)))
+  airbnb_roi_sf <- c(airbnb_roi_sf, ((medians$median_revenue_pa[2] - rent_sf * 12) / (rent_sf * 12)))
+  airbnb_roi_austin <- c(airbnb_roi_austin, ((medians$median_revenue_pa[3] - rent_austin * 12) / (rent_austin * 12)))
 }
 
 # Create a data frame for plotting
@@ -648,86 +648,18 @@ plot_data <- data.frame(Nights = 10:365,
 p <- ggplot(plot_data, aes(x = Nights)) +
   geom_line(aes(y = rev(ROI_NYC)), color = airbnb_color1, linetype = "solid", size = 1, label = "ROI NYC") +
   geom_line(aes(y = rev(ROI_SF)), color = airbnb_color2, linetype = "solid", size = 1, label = "ROI SF") +
-  geom_line(aes(y = rev(ROI_Austin)), linetype = "solid", size = 1, label = "ROI Austin") +
+  geom_line(aes(y = rev(ROI_Austin)), color = airbnb_color3, linetype = "solid", size = 1, label = "ROI Austin") +
   labs(title = "ROI vs. Number of Nights Available",
        x = "Number of Nights Available",
        y = "ROI %") +
   theme_minimal() +
   theme(legend.position = "top",
         panel.grid = element_blank()) +
-  scale_x_continuous(breaks = seq(365, 0, by = -30)) +
-  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
-  geom_vline(xintercept = 365 - which.min(airbnb_roi_nyc), linetype = "dotted", color = "red") +
-  geom_vline(xintercept = 365 - which.min(airbnb_roi_sf), linetype = "dotted", color = "blue") +
-  geom_vline(xintercept = 365 - which.min(airbnb_roi_austin), linetype = "dotted", color = "green") +
-  annotate("text", x = 365 - which.min(airbnb_roi_nyc), y = 0.15, label = "ROI NYC", color = "red") +
-  annotate("text", x = 365 - which.min(airbnb_roi_sf), y = 0.2, label = "ROI SF", color = "blue") +
-  annotate("text", x = 365 - which.min(airbnb_roi_austin), y = 0.25, label = "ROI Austin", color = "green")
-
+  scale_x_continuous(breaks = seq(365, 10, by = -30)) +
+  scale_y_continuous(labels = scales::percent_format(scale = 100))
 # Show the plot
 
 print(p)
-```
- 
-
-## Visualizing the map data
-
-```{r}
-# Load necessary libraries
-library(sf)
-library(readr)
-
-# Replace 'your-geojson-file.geojson' with the actual path to your GeoJSON file
-gdf <- st_read('./data/neighbourhoods.geojson')
-
-# Access specific columns, e.g., 'geometry' or 'name'
-geometries <- gdf$geometry
-names <- gdf$name  # Assuming 'name' is the column you want to access
-
-# Turn the 'neighborhood' column to integer
-gdf$neighbourhood <- as.integer(gdf$neighbourhood)
-```
-
-```{r}
-# Filter the listings for Austin
-listings_austin <- listings %>%
-  filter(city == 'austin')
-
-# Group by 'neighbourhood_cleansed' and calculate median values
-median_roi_by_neighbourhood <- listings_austin %>%
-  group_by(neighbourhood_cleansed) %>%
-  summarise(median_one_year_roi = median(one_year_roi),
-            median_price = median(price),
-            n_listings = n()) %>%
-  filter(n_listings > 20)  # Filtering out neighbourhoods with less than 20 listings
-
-# Change the data type of 'neighbourhood_cleansed' to integer
-median_roi_by_neighbourhood$neighbourhood_cleansed <- as.integer(median_roi_by_neighbourhood$neighbourhood_cleansed)
-
-# Merge the geojson neighborhood data with the aggregated one_year_roi
-merged_gdf <- left_join(gdf, median_roi_by_neighbourhood, by = c("neighbourhood" = "neighbourhood_cleansed"))
-
-# Drop rows with NA neighborhoods
-merged_gdf <- merged_gdf %>%
-  filter(!is.na(n_listings))
-```
-
-## 
-
-```{r}
-
-# Create the plot
-p <- ggplot() +
-  geom_sf(data = merged_gdf, aes(fill = median_one_year_roi), color = "0.8", size = 0.8) +
-  scale_fill_gradientn(colors = terrain.colors(10)) +
-  labs(title = "Median ROI per Region") +
-  scale_fill_gradientn(colors = c(airbnb_color2, airbnb_color1)) +
-  theme_void() +
-  theme(legend.position = "right")  # You can adjust the legend position as needed
-
-# Display the plot
-print(p)
-
 ```
 
 
