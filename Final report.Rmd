@@ -130,13 +130,13 @@ listings <- bind_rows(listings_nyc, listings_sf, listings_austin)
 
 We will be mainly working with the listings data at first. Therefore, we
 check the values of the dataset to get insight on their distributions
-and possible data preparation tasks.
+and possible data preparation tasks. We start by checking the price column, since it's one of our main focuses.
 
 ```{r}
 # Starting EDA
 
 # Summarize the listings data
-summary(listings)
+summary(listings$price)
 ```
 
 Our main focus will be on the price column. In the summary output, it's
@@ -149,6 +149,7 @@ head(listings$price)
 
 After inspecting the first few rows, we see that that is because of the
 \$ sign. So we have to substitute these:
+
 
 ```{r}
 # That's because it's saved with the $ and commas (currency)
@@ -172,10 +173,10 @@ column that represents the yearly revenue of each listings, since we
 will need to compare that to "regular renting" in order to determine an
 ROI. We assume that "regular renting" has a positive yield on the
 housing prices, and so if the revenue per year for a given listing is
-greater than the expected rent price per year, the listinghas a higher
+greater than the expected rent price per year, the listing has a higher
 ROI on investing in homes than regular rent. We will make no assumptions
-on the return in comparison to house especulation, under the thesis that
-one can speculate with either Airbnb or regular renting properties. The
+on the return in comparison to house speculation, under the thesis that
+one can speculate with either an Airbnb property or regular renting properties. The
 p.a revenue from a listing takes in consideration the expected occupancy
 per year, given in the availability_365 column. A house can be
 unavailable if it's booked or if the owner takes the listing off the
@@ -185,7 +186,7 @@ value in the availability 365 column.
 
 ```{r}
 # Calculate one-year return on investment (ROI) for listings
-listings$one_year_roi <- (365 - listings$availability_365) * listings$price
+listings$revenue_pa <- (365 - listings$availability_365) * listings$price
 
 ```
 
@@ -210,6 +211,7 @@ of the outliers. We will remove them to get a better look
 ggplot(listings, aes(x = city, y = price)) +
   geom_boxplot(outlier.shape = NA, fill = airbnb_color1) +
   labs(title = "Price distribution per city without outliers") +
+  scale_y_continuous(labels = scales::dollar_format()) +
   theme_minimal() +
   coord_cartesian(ylim = quantile(listings$price, c(0.25, 0.75)) + c(-1, 1.5) * IQR(listings$price))
 
