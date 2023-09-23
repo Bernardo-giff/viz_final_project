@@ -511,11 +511,17 @@ for 1 bedroom apartments are much higher in NYC and SF than in Austin.
 Now we need to connect that to the expected revenues from Airbnb
 listings. For that, we store the the median rent prices for one bedroom
 appartments in separate variables, and compare them row by row with the
-expected monthly revenue of the airbnb listings. That is:
+expected monthly revenue of the airbnb listings. We define the revenue p.a. as:
 
 $$
-Revenue = \frac{(365 - Availability\_{365})*Price}{12}
+Revenue_{p.a.} = \frac{(365 - Availability_{365 days})*Price_{per\ night}}{12}
 $$
+The the ROI % of an airbnb over the median rent is given by:
+
+$$
+ROI\ \% = \frac{Revenue_{p.a.} - median(Rent)}{median(Rent)}
+$$
+
 
 ```{r}
 # Extract the median rent prices for 1-bedroom apartments in NYC, SF, and Austin
@@ -540,12 +546,6 @@ listings$price_night_median_rent <- sapply(1:nrow(listings), function(i) calcula
 # Assuming 'listings' is your data frame and 'rent_austin', 'rent_ny', and 'rent_sf' are defined variables
 
 ```
-
-After creating the price_night_median_rent column that stores the value:
-
-$$
-Price = \frac{Revenue - median(Rent)}{median(Rent)}
-$$
 
 We plot the the distribution. We only apply an upper bound filter at
 first to remove some evident outliers.
@@ -606,7 +606,7 @@ p <- ggplot(filtered_listings, aes(x = city, y = price_night_median_rent)) +
 ```
 
 So we see that after applying some conditions, the ROI of Airbnb starts
-to become evident.
+to become evident. We plot the evolution of the ROI,
 
 ```{r}
 #Preparing the data for the line plots
@@ -650,7 +650,7 @@ p <- ggplot(plot_data, aes(x = Nights)) +
   geom_line(aes(y = rev(ROI_SF)), color = airbnb_color2, linetype = "solid", size = 1, label = "ROI SF") +
   geom_line(aes(y = rev(ROI_Austin)), color = airbnb_color3, linetype = "solid", size = 1, label = "ROI Austin") +
   labs(title = "ROI vs. Number of Nights Available",
-       x = "Number of Nights Available",
+       x = "Number of nights taken per year",
        y = "ROI %") +
   theme_minimal() +
   theme(legend.position = "top",
@@ -661,7 +661,7 @@ p <- ggplot(plot_data, aes(x = Nights)) +
 
 print(p)
 ```
-
+Based on the plot above, we can conclude that for any city, Airbnb's have a better ROI than regular renting past a certain threshold of nights. Furthermore, we see that that threshold and the overall potential of return for Austin is far superior than those of NYC and SF.
 
 # Hypothesis 2
 
