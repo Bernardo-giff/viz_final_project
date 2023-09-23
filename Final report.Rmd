@@ -207,11 +207,19 @@ We can't really get good insights from the boxplots as they are because
 of the outliers. We will remove them to get a better look
 
 ```{r}
+
+# Create a new variable to store colors based on the 'city' variable
+listings$city_color <- factor(listings$city, levels = unique(listings$city),
+                               labels = c(airbnb_color1, airbnb_color2, airbnb_color3))
+
 # Create a boxplot of the 'price' distribution per city without outliers
-ggplot(listings, aes(x = city, y = price)) +
-  geom_boxplot(outlier.shape = NA, fill = airbnb_color1) +
-  labs(title = "Price distribution per city without outliers") +
+ggplot(listings, aes(x = city, y = price, fill = city_color)) +
+  geom_boxplot(outlier.shape = NA) +
+  labs(title = "Price distribution per city without outliers",
+       y = "Price",
+       x = "City") +
   scale_y_continuous(labels = scales::dollar_format()) +
+  scale_fill_identity() +  # To use the custom colors
   theme_minimal() +
   coord_cartesian(ylim = quantile(listings$price, c(0.25, 0.75)) + c(-1, 1.5) * IQR(listings$price))
 
@@ -223,43 +231,95 @@ are known for their high prices. This might be do to the distribution of
 property types
 
 ```{r}
-# Calculate the total count of each property type across all cities
+# Calculate counts per property type
 property_type_counts <- listings %>%
-  count(property_type)
+  group_by(property_type) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
 
-# Get the top ten property types based on total count
-top_property_types <- property_type_counts %>%
-  arrange(desc(n)) %>%
-  head(10) %>%
-  pull(property_type)
+# Calculate the cumulative contribution
+property_type_counts <- property_type_counts %>%
+  mutate(cumulative_count = cumsum(count),
+         cumulative_percentage = (cumulative_count / sum(count)) * 100)
 
-# Filter the DataFrame to include only the top property types
-filtered_listings <- listings %>%
-  filter(property_type %in% top_property_types)
+# Calculate the maximum count
+max_count <- max(property_type_counts$count)
 
-# Set the order of property types based on their total count
-property_type_order <- property_type_counts %>%
-  filter(property_type %in% top_property_types) %>%
-  arrange(desc(n)) %>%
-  pull(property_type)
+# Create the Pareto chart
+ggplot(data = property_type_counts, aes(x = reorder(property_type, -count), y = count)) +
+  geom_bar(stat = "identity", fill = "lightblue") +
+  geom_line(aes(x = property_type, y = cumulative_percentage * max_count / 100), color = "red") +
+  geom_point(aes(x = property_type, y = cumulative_percentage * max_count / 100), color = "red") +
+  labs(title = "Pareto Chart of Property Types by Count",
+       x = "Property Type",
+       y = "Count",
+       secondary_y = TRUE) +
+  scale_y_continuous(sec.axis = sec_axis(~./max_count * 100, name = "Cumulative %")) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, , size = 8))
 
-# Set the style for the plot (if needed)
-theme_set(theme_minimal())
 
-# Create a vertical countplot faceted by 'city' using ggplot2 with switched axes
-ggplot(filtered_listings, aes(x = property_type, fill = city)) +
-  geom_bar() +
-  facet_wrap(~ city, scales = "free_x", ncol = 3) +
-  scale_fill_brewer(palette = "Set2") +
-  labs(title = "Top Ten Property Types Count Faceted by City",
-       y = "Number of listings",
-       x = "Property type") +
-  geom_text(stat = "count", aes(label = paste(round(..count.. / 1000, 1), "k")), vjust = -0.2) +
-  guides(fill = guide_legend(title = "City")) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        ) +
-  coord_flip()
+```
+We see that the number of listings is highly concentrated in a couple of types. Therefore, we wiull take the top 10 properties, which accounts for over 90% of the data
+  
+```{r}
+listings_filtered <- listings %>%
+  group_by(property_type)%>%
+  summarise(n_properties = n()) %>%   
+  arrange(desc(n_properties)) %>%
+  slice(1:10)
 
+ggplot(data=listings_filtered, aes(x= reorder(property_type, +n_properties), y=n_properties, fill=airbnb_color1))+
+  geom_bar(stat="identity")+
+  geom_label(aes(label = n_properties, label.bg='white'))+
+  scale_fill_identity() +  # Use the specified fill color + 
+  theme(legend.position = "none",  # Remove the legend
+        panel.grid = element_blank()) +  # Remove grid lines
+  coord_flip()+
+  labs(title='Count of listings by type', x="Property type", y='Number of listings')
+```
+Now we check how the proportion of property types is distributed accross the different cities.
+
+```{r}
+relevant_listings = unique(listings_filtered$property_type)
+
+heatmap_data <- listings %>%
+  filter(property_type %in% relevant_listings) %>%
+  group_by(city, property_type) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+# Create the heatmap
+heatmap_plot1 <- ggplot(data = heatmap_data, aes(x = city, y = property_type)) +
+  geom_tile(aes(fill = count), color = "white") +
+  scale_fill_gradient(low = "white", high = airbnb_color1) +
+  labs(title = "Count of listings") +
+  theme_minimal() + 
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank()) +
+  theme(legend.position = "none",  # Remove the legend
+        panel.grid = element_blank()) # Remove grid lines
+
+
+heatmap_data <- listings %>%
+  filter(property_type %in% relevant_listings) %>%
+  group_by(city, property_type) %>%
+  summarise(median = median(price)) %>%
+  arrange(desc(median))
+
+# Create the heatmap
+heatmap_plot2 <- ggplot(data = heatmap_data, aes(x = city, y = property_type)) +
+  geom_tile(aes(fill = median), color = "white") +
+  scale_fill_gradient(low = "white", high = airbnb_color2) +
+  labs(title = "Median price", x = "City", y = "Property type") +
+  theme_minimal() + 
+  theme(axis.text.y = element_blank(),
+        axis.title.y = element_blank(),
+        axis.title.x = element_blank()) +
+  theme(legend.position = "none",  # Remove the legend
+        panel.grid = element_blank()) # Remove grid lines
+
+(heatmap_plot1 | heatmap_plot2)
 
 ```
 
@@ -283,6 +343,7 @@ ggplot(filtered_listings, aes(x = city, y = price)) +
        x = "City",
        y = "Price") +
   theme_minimal() + 
+  scale_y_continuous(labels = scales::dollar_format()) +
   coord_cartesian(ylim = quantile(listings$price, c(0.25, 0.75)) + c(-1, 1.5) * IQR(listings$price))
 
 ```
@@ -301,6 +362,7 @@ ggplot(filtered_listings, aes(x = city, y = price)) +
        x = "City",
        y = "Price") +
   theme_minimal() + 
+  scale_y_continuous(labels = scales::dollar_format()) +
   coord_cartesian(ylim = quantile(filtered_listings$price, c(0.25, 0.75)) + c(-1, 1.5) * IQR(filtered_listings$price))
 ```
 
@@ -322,6 +384,7 @@ p <- ggplot(filtered_listings, aes(x = property_type, y = price)) +
        y = "Price") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+    scale_y_continuous(labels = scales::dollar_format()) +
   coord_cartesian(ylim = quantile(filtered_listings$price, c(0.25, 0.75)) + c(-1, 1.5) * IQR(filtered_listings$price))
 
 # Adjust the plot title position
@@ -505,7 +568,8 @@ ggplot(filtered_listings,
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
         panel.grid.major = element_blank(),
         axis.title = element_blank()) +
-  scale_y_continuous(labels = scales::percent_format(scale = 100))
+  scale_y_continuous(labels = scales::percent_format(scale = 100)) + 
+  scale_fill_manual(values = city_colors)
 
 ```
 
