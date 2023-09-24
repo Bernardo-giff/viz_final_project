@@ -13,8 +13,8 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 
 
-#install.packages("ggstatsplot")
-#install.packages("kableExtra")
+install.packages("ggstatsplot")
+install.packages("kableExtra")
 
 rm(list=ls())
 
@@ -1573,9 +1573,11 @@ of days available. We will calculate the occupancy per property and then
 analyze the distribution between listing offering of entire apartments
 vs single rooms.
 
-Assumptions - Listings that have 0 reviews and 0 availability for the
+Assumptions for H3
+- Listings that have 0 reviews and 0 availability for the
 next 365 days will be removed from the data, and we will assume that the
-host have blocked these listings. - Given the Airbnb data, there is no
+host have blocked these listings.
+- Given the Airbnb data, there is no
 way to distinguish between rentals that have been blocked by the host or
 haven been rented, for simplicity we will assume that rentals that are
 not available, have been rented by users.
@@ -1628,7 +1630,7 @@ p<-ggplot(data = austin_H3_2,aes(x = occupancy_rate, y = future_earnings)) +
   geom_point(aes(x = occupancy_rate, y = future_earnings)) +
   geom_smooth(method = "lm", se = FALSE, color = airbnb_color1) +
   labs(x ="Occupancy rate", y ="Earnings", title ='Relationship between earnings and occupancy rate') +
-  theme(legend.position="none") 
+  theme(legend.position="none")  + scale_y_continuous(labels = dollar_format())
   
 #Adding density visualization to understand where does the majority of data lies.
 p1 <- ggMarginal(p, type="density", margins='y', fill = airbnb_color2)
@@ -1640,7 +1642,7 @@ When we examine the distribution of occupancy rate across the two room
 types in analysis, we can observe that in Austin there are 4 times more
 Entire home/apt listings than private rooms, this can be considered as a
 limitation for our analysis but could also represent a huge opportunity
-for investors or current hosts.
+for investors.
 
 It can be seen that private rooms experience a higher occupancy rates
 than entire home/apt. The majority of the data of the data for private
