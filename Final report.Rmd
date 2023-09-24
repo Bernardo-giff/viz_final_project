@@ -13,7 +13,8 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 
 
-#install.packages("ggstatsplot")
+install.packages("ggstatsplot")
+install.packages("kableExtra")
 
 rm(list=ls())
 
