@@ -685,57 +685,29 @@ There is no way to distinguish between rentals that have been blocked by
 the host or haven been rented, for simplicity we will assume that
 rentals that are not available, have been rented by users.
 
-Our analysis will be based on three datasets: listings_data, calendar
-data, and reviews_data. These datasets provide comprehensive information
-about the listings, their availability throughout the year and the
-reviews they've received.
 
-```{r}
-# Reading the Data
-listings_data <- read.csv("./data/listings/listings_austin.csv")
-calendar_data <- read.csv("./data/calendar/calendar_austin.csv")
-reviews_data <- read.csv("./data/reviews/reviews_austin.csv")
-```
-
-Let's first take a look at the 'listings_data'. This dataset provides
+Let's first take a look at the 'listings_austin'. This dataset provides
 detailed information about each listing. By using the code below, we can
 get a quick overview of the first few rows, the structure of the dataset
 and some basic statistics for each column.
 
 ```{r}
+#Creating a copy of listings_austin
+listings_austin_min <- listings_austin
 # Quick overview of listings data
-head(listings_data)
-str(listings_data)
-summary(listings_data)
+head(listings_austin_min)
+str(listings_austin_min)
+summary(listings_austin_min)
 ```
 
-Next, we explore the 'calendar_data'. This dataset gives us insights
-into the availability and pricing of listings throughout the year.
-
-```{r}
-# Quick overview of calendar data
-head(calendar_data)
-str(calendar_data)
-summary(calendar_data)
-```
-
-Our third dataset, 'reviews_data', captures the details of the
-reviewers.
-
-```{r}
-# Quick overview of reviews data
-head(reviews_data)
-str(reviews_data)
-summary(reviews_data)
-```
 
 To wrap up our initial data exploration, let's list down all the columns
-present in the listings_data. This will give us a roadmap of the
+present in the listings_austin_min. This will give us a roadmap of the
 variables we have at our disposal for the analysis.
 
 ```{r}
 # Columns for listing data
-column_names <- names(listings_data)
+column_names <- names(listings_austin_min)
 print(column_names)
 ```
 
@@ -745,36 +717,24 @@ is clean and in the right format.
 ```{r}
 #Cleaning Data
 
-#Remove dollar signs and commas, then convert to numeric (Prices in calendar and listings)
-calendar_data$price <- as.numeric(gsub("[$,]", "", calendar_data$price))
-calendar_data$adjusted_price <- as.numeric(gsub("[$,]", "", calendar_data$adjusted_price))
-listings_data$price <- as.numeric(gsub("[$,]", "", listings_data$price))
-
-#Changing Date type
-calendar_data$date <- as.Date(calendar_data$date, format= "%Y-%m-%d")
-
 #Convert Minimum Nights to integer
-calendar_data$minimum_nights <- as.integer(calendar_data$minimum_nights)
-listings_data$minimum_nights <- as.numeric(listings_data$minimum_nights)
-listings_data$minimum_nights <- as.integer(listings_data$minimum_nights)
+listings_austin_min$minimum_nights <- as.integer(listings_austin_min$minimum_nights)
 
 #Convert Room type to Character
-listings_data$room_type <- as.character(listings_data$room_type)
+listings_austin_min$room_type <- as.character(listings_austin_min$room_type)
 
 #Convert Availability 365 to integer
-listings_data$availability_365 <- as.numeric(listings_data$availability_365)
-listings_data$availability_365 <- as.integer(listings_data$availability_365)
+listings_austin_min$availability_365 <- as.integer(listings_austin_min$availability_365)
 
 #Convert Number of Reviews to Integer
-listings_data$number_of_reviews <- as.numeric(listings_data$number_of_reviews)
-listings_data$number_of_reviews <- as.integer(listings_data$number_of_reviews)
+listings_austin_min$number_of_reviews <- as.integer(listings_austin_min$number_of_reviews)
 
 #Convert Number of Reviews to Decimal (1 dp)
-listings_data$review_scores_rating <- as.numeric(listings_data$review_scores_rating)
-listings_data$review_scores_rating <- round(listings_data$review_scores_rating, 1)
+listings_austin_min$review_scores_rating <- as.numeric(listings_austin_min$review_scores_rating)
+listings_austin_min$review_scores_rating <- round(listings_austin_min$review_scores_rating, 1)
 
 #Convert Neighbourhood to character
-listings_data$neighbourhood <- as.character(listings_data$neighbourhood)
+listings_austin_min$neighbourhood <- as.character(listings_austin_min$neighbourhood)
 ```
 
 Missing data can skew our analysis and lead to misleading conclusions,
@@ -787,31 +747,31 @@ review.
 #Looking at number of NAs for certain columns in Listings (Df that I will be using)
 
 # Price
-na_price_listings <- sum(is.na(listings_data$price))
+na_price_listings <- sum(is.na(listings_austin_min$price))
 cat("Number of NA values in Price (listings):", na_price_listings, "\n")
 
 # Minimum nights
-na_min_nights_listings <- sum(is.na(listings_data$minimum_nights))
+na_min_nights_listings <- sum(is.na(listings_austin_min$minimum_nights))
 cat("Number of NA values in Minimum nights (listings):", na_min_nights_listings, "\n")
 
 #Room Type
-na_room_type_listings <- sum(is.na(listings_data$room_type))
+na_room_type_listings <- sum(is.na(listings_austin_min$room_type))
 cat("Number of NA values in Room Type (listings):", na_room_type_listings, "\n")
 
 #Availability 365
-na_availability_365_listings <- sum(is.na(listings_data$availability_365))
+na_availability_365_listings <- sum(is.na(listings_austin_min$availability_365))
 cat("Number of NA values in Availability 365 (listings):", na_availability_365_listings, "\n")
 
 #Number of Reviews
-na_number_of_reviews_listings <- sum(is.na(listings_data$number_of_reviews))
+na_number_of_reviews_listings <- sum(is.na(listings_austin_min$number_of_reviews))
 cat("Number of NA values in Number of Reviews (listings):", na_number_of_reviews_listings, "\n")
 
 # Reviews score rating
-na_reviews_score_rating_listings <- sum(is.na(listings_data$review_scores_rating))
+na_reviews_score_rating_listings <- sum(is.na(listings_austin_min$review_scores_rating))
 cat("Number of NA values in Number of Reviews score rating (listings):", na_reviews_score_rating_listings, "\n")
 
 #Neighbourhood
-na_neighbourhood_listings <- sum(is.na(listings_data$neighbourhood))
+na_neighbourhood_listings <- sum(is.na(listings_austin_min$neighbourhood))
 cat("Number of NA values in Neighbourhood (listings):", na_neighbourhood_listings, "\n")
 ```
 
@@ -824,25 +784,25 @@ context.
 #Checking summary stats for relevant columns
 
 #Summary Stats for Price
-print(summary(listings_data$price))
+print(summary(listings_austin_min$price))
 
 #Summary Stats for Minimum Nights
-print(summary(listings_data$minimum_nights))
+print(summary(listings_austin_min$minimum_nights))
 
 #Summary Stats for Room Type
-print(table(listings_data$room_type))
+print(table(listings_austin_min$room_type))
 
 #Summary Stats for Availability 365
-print(summary(listings_data$availability_365))
+print(summary(listings_austin_min$availability_365))
 
 #Summary Stats for Number of Reviews
-print(summary(listings_data$number_of_reviews))
+print(summary(listings_austin_min$number_of_reviews))
 
 #Summary Stats for Review Score Rating
-print(summary(listings_data$review_scores_rating))
+print(summary(listings_austin_min$review_scores_rating))
 
 #Summary Stats for Neighbourhood
-print(table(listings_data$neighbourhood))
+print(table(listings_austin_min$neighbourhood))
 
 ```
 
@@ -856,13 +816,12 @@ on.
 
 ```{r}
 #Price
-
-boxplot(listings_data$price, main="Boxplot of Prices", ylab="Price")
+boxplot(listings_austin_min$price, main="Boxplot of Prices", ylab="Price")
 #to get a clearer picture, limiting it to 5000
-boxplot(listings_data$price, ylim=c(0,5000), main="Boxplot of Prices", ylab="Price")
+boxplot(listings_austin_min$price, ylim=c(0,5000), main="Boxplot of Prices", ylab="Price")
 #Exclude anything over 2000 (based on plot) and anything under (10 dollars) which seems to be too low
-listings_data <- listings_data[listings_data$price>=10 & listings_data$price <= 800, ]
-cat("Number of rows after filtering:", nrow(listings_data), "\n")
+listings_austin_min <- listings_austin_min[listings_austin_min$price>=10 & listings_austin_min$price <= 800, ]
+cat("Number of rows after filtering:", nrow(listings_austin_min), "\n")
 ```
 
 We examined the distribution of minimum nights required for listings.
@@ -875,12 +834,12 @@ those less than 30 consecutive days aligns with this concept.
 
 ```{r}
 #Minimum Nights
-boxplot(listings_data$minimum_nights, main="Boxplot of Minimum Nights", ylab="Minimum Nights")
+boxplot(listings_austin_min$minimum_nights, main="Boxplot of Minimum Nights", ylab="Minimum Nights")
 #to get a clearer picture, limiting it to 100
-boxplot(listings_data$minimum_nights, ylim=c(0,100), main="Boxplot of Minimum Nights", ylab="Minimum Nights")
+boxplot(listings_austin_min$minimum_nights, ylim=c(0,100), main="Boxplot of Minimum Nights", ylab="Minimum Nights")
 #Exclude anything over 30 days based on plot
-listings_data <- listings_data[listings_data$minimum_nights <=30, ]
-cat("Number of rows after filtering:", nrow(listings_data), "\n")
+listings_austin_min <- listings_austin_min[listings_austin_min$minimum_nights <=30, ]
+cat("Number of rows after filtering:", nrow(listings_austin_min), "\n")
 ```
 
 We analysed the distribution of the number of reviews for listings. To
@@ -889,10 +848,10 @@ we've restricted our analysis to listings with 600 reviews or fewer.
 
 ```{r}
 #Number of Reviews
-boxplot(listings_data$number_of_reviews, main="Boxplot of Number of Reviews ", ylab="Number of Reviews")
+boxplot(listings_austin_min$number_of_reviews, main="Boxplot of Number of Reviews ", ylab="Number of Reviews")
 #Exclude anything above 600 based on plot
-listings_data <- listings_data[listings_data$number_of_reviews <=600, ]
-cat("Number of rows after filtering:", nrow(listings_data), "\n")
+listings_austin_min <- listings_austin_min[listings_austin_min$number_of_reviews <=600, ]
+cat("Number of rows after filtering:", nrow(listings_austin_min), "\n")
 ```
 
 We visually inspected the distribution of 'Availability 365' and 'Review
@@ -903,10 +862,10 @@ these variables.
 # Boxplots to visually look at distribution
 
 #Availability 365
-boxplot(listings_data$availability_365, main="Boxplot of Availability 365", ylab="Availability 365")
+boxplot(listings_austin_min$availability_365, main="Boxplot of Availability 365", ylab="Availability 365")
 
 #Review Score Rating
-boxplot(listings_data$review_scores_rating, main="Boxplot of Review Score Rating", ylab="Review Score Rating")
+boxplot(listings_austin_min$review_scores_rating, main="Boxplot of Review Score Rating", ylab="Review Score Rating")
 ```
 
 To better understand the dynamics of our listings, we've derived three
@@ -922,11 +881,11 @@ into the profitability and popularity of listings.
 
 ```{r}
 #Creating booking frequency
-listings_data$booking_frequency <- (365 - listings_data$availability_365)
+listings_austin_min$booking_frequency <- (365 - listings_austin_min$availability_365)
 #Creating booking frequency (%) to 1 dp
-listings_data$booking_frequency_percentage <- round(((365 - listings_data$availability_365)/365)*100,1)
+listings_austin_min$booking_frequency_percentage <- round(((365 - listings_austin_min$availability_365)/365)*100,1)
 #Creating Revenue
-listings_data$estimated_revenue <- listings_data$price * listings_data$booking_frequency
+listings_austin_min$estimated_revenue <- listings_austin_min$price * listings_austin_min$booking_frequency
 ```
 
 As you can see below, the distribution of prices for listings is
@@ -936,7 +895,7 @@ prices by minimum nights.
 
 ```{r}
 #Distribution of Prices
-ggplot(listings_data, aes(x=price)) + 
+ggplot(listings_austin_min, aes(x=price)) + 
   geom_histogram(binwidth = 10, fill= airbnb_color1, color="black", alpha= 0.7) + 
   labs(title= "Distribution of Prices for Lisitings in Austin", x="Price", y= "Number of listings") +
   theme_minimal() + 
@@ -944,7 +903,7 @@ ggplot(listings_data, aes(x=price)) +
   theme(panel.grid = element_blank())
 
 #Boxplot for Prices
-ggplot(listings_data, aes(y=price)) +
+ggplot(listings_austin_min, aes(y=price)) +
   geom_boxplot(fill= airbnb_color1, color= "black", alpha=0.7) +
   labs(title = "Boxplot of Prices for Listings in Austin", y="Price") +
   scale_y_continuous(labels = scales::dollar_format()) +
@@ -969,7 +928,7 @@ the platform, irrespective of the duration of stay they cater to.
 
 ```{r}
 # Distribution of of prices by minimum nights
-ggplot(listings_data, aes(x=price, fill= as.factor(minimum_nights)))+
+ggplot(listings_austin_min, aes(x=price, fill= as.factor(minimum_nights)))+
   geom_histogram(binwidth = 10, position= "identity", alpha=0.5) +
   labs(title= "Distribution of Prices by Minimum Nights", x= "Price ($)", y= "Number of Listings") +
   theme_minimal() +
@@ -989,7 +948,7 @@ and 200.
 
 ```{r}
 # Another plot of Dstribution of Prices by Minimum Nights
-ggplot(listings_data, aes(x= as.factor(minimum_nights), y=price, fill= as.factor(minimum_nights))) +
+ggplot(listings_austin_min, aes(x= as.factor(minimum_nights), y=price, fill= as.factor(minimum_nights))) +
   geom_boxplot() +
   labs(title= "Distribution of Prices by Minimum Nights", x="Minimum Nights", y= "Price ($)")+
   theme_minimal() +
@@ -1012,7 +971,7 @@ bookings, with a few accommodating longer stays.
 
 ```{r}
 # Number of Listings by Minimum Nights Plot
-ggplot(listings_data, aes(x=as.factor(minimum_nights))) +
+ggplot(listings_austin_min, aes(x=as.factor(minimum_nights))) +
   geom_bar(fill= airbnb_color1) +
   labs(title = "Number of Listings by Minimum Nights", x="Minimum Nights", y= "Number of Listings") +
   scale_y_continuous(labels = scales::dollar_format()) +
@@ -1039,7 +998,7 @@ possibly influenced by limited listings.
 
 ```{r}
 # Calculate weighted average
-weighted_avg_price <- listings_data %>%
+weighted_avg_price <- listings_austin_min %>%
   group_by(minimum_nights) %>%
   summarise(
     total_price= sum(price),
@@ -1074,7 +1033,7 @@ patterns.
 
 ```{r}
 #Scatter Plot of Price vs Minimum Nights
-ggplot(listings_data, aes(x=minimum_nights, y=price)) +
+ggplot(listings_austin_min, aes(x=minimum_nights, y=price)) +
   geom_point(alpha= 0.5) +
   labs(title= "Scatter Plot of Price vs Minimum Nights", x= "Minimum Nights", y= "Price ($)")+
   theme_minimal()
@@ -1096,13 +1055,13 @@ variety of prices, with a significant number of listings priced below
 150.
 
 ```{r}
-listings_data$min_nights_bin <- cut(listings_data$minimum_nights,
+listings_austin_min$min_nights_bin <- cut(listings_austin_min$minimum_nights,
                                     breaks= c(0,1,2,3,7,30),
                                     labels = c("1", "2", "3", "4-7", "8-30"),
                                     include.lowest = TRUE)
 
 #Heatmap
-ggplot(listings_data, aes(x= as.numeric(min_nights_bin), y= price)) +
+ggplot(listings_austin_min, aes(x= as.numeric(min_nights_bin), y= price)) +
   geom_bin2d(bins= 30, aes(fill = ..count..), color= "white")+
   scale_fill_gradient(low= "white", high= airbnb_color1) +
   labs(title = "Heatmap of Number of Minimmum Nights Category by Price", x= "Minimum Nights Category", y= "Price ($)") +
@@ -1123,7 +1082,7 @@ The correlation coefficient of around -0.15 indicates a weak negative
 relationship between minimum number of nights and listing price.
 
 ```{r}
-price_stats <- listings_data %>%
+price_stats <- listings_austin_min %>%
   summarise(
     average_price= mean(price),
     median_price= median(price),
@@ -1134,7 +1093,7 @@ price_stats <- listings_data %>%
 print(price_stats)
 
 #Correlation
-correlation <- cor(listings_data$minimum_nights, listings_data$price, method= "pearson", use= "complete.obs")
+correlation <- cor(listings_austin_min$minimum_nights, listings_austin_min$price, method= "pearson", use= "complete.obs")
 print(correlation)
 ```
 
@@ -1154,13 +1113,13 @@ that skew the overall distribution.
 ```{r}
 #Let's look at some possible segmentation by price due to high sd in prices
 #Calculate quantiles for price
-price_quantiles <- quantile(listings_data$price, probs= c(0.25,0.5,0.75))
+price_quantiles <- quantile(listings_austin_min$price, probs= c(0.25,0.5,0.75))
 
 #Print the quantiles
 print(price_quantiles)
 
 #Plot a boxplot to visualise the distribution of Prices again
-ggplot(listings_data, aes(y= price)) +
+ggplot(listings_austin_min, aes(y= price)) +
   geom_boxplot() +
   labs(title= "Boxplot of Listing Prices", y= "Prices") +
   theme_minimal()
@@ -1180,13 +1139,13 @@ with few in the middle range.
 
 ```{r}
 #Distribution of booking frequency
-ggplot(listings_data, aes(x= booking_frequency)) +
+ggplot(listings_austin_min, aes(x= booking_frequency)) +
   geom_histogram(binwidth = 10, fill = "skyblue", color ="black") +
   labs(title= "Distribution of Booking Frequency (Days Booked in a Year)", x= "Number of Days Booked", y= "Number of Listings") +
   theme_minimal()
 
 #Distribution of booking frequency %
-ggplot(listings_data, aes(x= booking_frequency_percentage)) +
+ggplot(listings_austin_min, aes(x= booking_frequency_percentage)) +
   geom_histogram(binwidth = 10, fill = "skyblue", color ="black") +
   labs(title= "Distribution of Booking Frequency (%)", x= "Percentage of Days Booked", y= "Number of Listings") +
   theme_minimal()
@@ -1203,7 +1162,7 @@ Stays (10+ nights): Frequencies vary between 50% and 88%, with dips at
 
 ```{r}
 #Grouping by Minimum Nights and calculating average booking frequency
-booking_by_min_nights <- listings_data %>%
+booking_by_min_nights <- listings_austin_min %>%
   group_by(minimum_nights) %>%
   summarise(
     avg_booking_frequency = mean(booking_frequency),
@@ -1230,7 +1189,7 @@ available more frequently.
 
 ```{r}
 # Boxplot of Booking frequency %
-ggplot(listings_data, aes(y= booking_frequency_percentage)) +
+ggplot(listings_austin_min, aes(y= booking_frequency_percentage)) +
   geom_boxplot(fill= airbnb_color1) +
   labs(title= "Boxplot of Booking Frequency (%)", y= "Booking Frequency (%)") +
   theme_minimal()
@@ -1243,7 +1202,7 @@ booking frequency percentage slightly decreases. However, the
 correlation is so weak that it is probably not practically significant.
 
 ```{r}
-correlation_bf_r <- cor(listings_data$minimum_nights, listings_data$booking_frequency_percentage, method= "pearson", use= "complete.obs")
+correlation_bf_r <- cor(listings_austin_min$minimum_nights, listings_austin_min$booking_frequency_percentage, method= "pearson", use= "complete.obs")
 print(correlation_bf_r)
 ```
 
@@ -1253,7 +1212,7 @@ and price. .Most listings are priced below 400. .Listings priced above
 
 ```{r}
 #Scatter Plot of Price vs Booking Frequency Percentage
-ggplot(listings_data, aes(x= booking_frequency_percentage, y=price)) +
+ggplot(listings_austin_min, aes(x= booking_frequency_percentage, y=price)) +
   geom_point(alpha=0.5) +
   geom_smooth(method = "lm", color= "red") +
   labs(title= "Scatter Plot of Price vs Booking Frequency Percentage", x= "Booking Frequency (%)", y= "Price ($)") +
@@ -1266,7 +1225,7 @@ and 3 beds (around 2200). Listings drop sharply after 4 beds (around
 
 ```{r}
 #Histogram of Number of Beds
-ggplot(listings_data, aes(x= beds))+
+ggplot(listings_austin_min, aes(x= beds))+
   geom_histogram(binwidth = 1, fill= "skyblue", color= "black") +
   labs(title= "Distribution of Number of Beds", x= "Number of Beds", y= "Number of Listings") +
   theme_minimal()
@@ -1279,7 +1238,7 @@ observed after except at 23 and 25 both averaging close to 200.
 
 ```{r}
 #Grouping by Number of Beds and calculating average price
-avg_price_by_beds <- listings_data %>%
+avg_price_by_beds <- listings_austin_min %>%
   group_by(beds) %>%
   summarise(avg_price= mean(price))
 
@@ -1303,16 +1262,16 @@ letting them skew the analysis.
 
 ```{r}
 #Dropping Listings with less than 10 beds
-listings_data <- listings_data %>% filter(beds <= 10)
+listings_austin_min <- listings_austin_min %>% filter(beds <= 10)
 
 #Grouping the number of beds
-listings_data$beds_grouped <- case_when(
-  listings_data$beds == 1 ~ "1",
-  listings_data$beds == 2 ~ "2",
-  listings_data$beds == 3 ~ "3",
-  listings_data$beds == 4 ~ "4",
-  listings_data$beds == 5 ~ "5",
-  listings_data$beds >= 6 ~ "6+"
+listings_austin_min$beds_grouped <- case_when(
+  listings_austin_min$beds == 1 ~ "1",
+  listings_austin_min$beds == 2 ~ "2",
+  listings_austin_min$beds == 3 ~ "3",
+  listings_austin_min$beds == 4 ~ "4",
+  listings_austin_min$beds == 5 ~ "5",
+  listings_austin_min$beds >= 6 ~ "6+"
 )
 
 
@@ -1323,7 +1282,7 @@ zero so we can proceed.
 
 ```{r}
 #Subset of beds less than or equal to 10
-filtered_bed_data <- listings_data %>% filter(beds <= 10)
+filtered_bed_data <- listings_austin_min %>% filter(beds <= 10)
 
 # Checking number of Nas in this subset
 na_count_filtered_bed <- sum(is.na(filtered_bed_data$beds))
@@ -1343,7 +1302,7 @@ larger ones, especially 6+ beds, have niche demand.
 
 ```{r}
 #Grouping by Number of Beds and calculating average booking frequency
-avg_booking_by_beds <- listings_data %>%
+avg_booking_by_beds <- listings_austin_min %>%
   group_by(beds_grouped) %>%
   summarise(avg_booking_frequency = mean(booking_frequency_percentage))
 
@@ -1364,7 +1323,7 @@ bed count.
 
 ```{r}
 #Boxplot to look beds (by price)
-ggplot(listings_data, aes(x=factor(beds_grouped), y= price)) +
+ggplot(listings_austin_min, aes(x=factor(beds_grouped), y= price)) +
   geom_boxplot() +
   labs(title= "Boxplot of Price by Number of Beds", x= "Category of Beds", y= "Price ($)") +
   theme_minimal()
@@ -1388,11 +1347,11 @@ potential factors that might influence these earnings.
 library(ggplot2)
 
 # Calculate mean and median of estimated_revenue
-mean_revenue <- mean(listings_data$estimated_revenue, na.rm = TRUE)
-median_revenue <- median(listings_data$estimated_revenue, na.rm = TRUE)
+mean_revenue <- mean(listings_austin_min$estimated_revenue, na.rm = TRUE)
+median_revenue <- median(listings_austin_min$estimated_revenue, na.rm = TRUE)
 
 # Plotting the histogram with enhanced colors and annotations
-ggplot(listings_data, aes(x = estimated_revenue)) +
+ggplot(listings_austin_min, aes(x = estimated_revenue)) +
   geom_histogram(aes(y = ..density..), binwidth = 50, fill = "#66c2a5", color = "#238b45", alpha = 0.7) +
   geom_density(color = "#d95f02") +
   geom_vline(aes(xintercept = mean_revenue), color = "#1f78b4", linetype = "dashed", size = 1) +
@@ -1420,14 +1379,14 @@ revenue.
 #To avoid scientific notations in Estimated Revenue
 options(scipen = 999)
 # Histogram to view distribution of revenue by beds categories
-ggplot(listings_data, aes(x= estimated_revenue, fill= factor(beds_grouped))) + 
+ggplot(listings_austin_min, aes(x= estimated_revenue, fill= factor(beds_grouped))) + 
   geom_histogram(binwidth=100, position="identity", alpha=0.6) + 
   labs(title= "Distribution of Revenue by Number of Beds", x= "Estimated Revenue ($)", y="Count") +
   theme_minimal () + 
   facet_wrap(~beds_grouped, scales= "free_y")
 
 #Boxplot to look beds (by revenue)
-ggplot(listings_data, aes(x=factor(beds_grouped), y= estimated_revenue)) +
+ggplot(listings_austin_min, aes(x=factor(beds_grouped), y= estimated_revenue)) +
   geom_boxplot() +
   labs(title= "Boxplot of Price by Number of Beds", x= "Category of Beds", y= "Estimated Revenue ($)") +
   theme_minimal()
@@ -1448,17 +1407,17 @@ from the Pearson's correlation test.
 library(scales)
 
 # Create a formatted version of estimated revenue as dollars
-listings_data$dollar_revenue <- dollar(listings_data$estimated_revenue)
+listings_austin_min$dollar_revenue <- dollar(listings_austin_min$estimated_revenue)
 
 # Calculate the correlation coefficient
-correlation_value <- cor(listings_data$minimum_nights, listings_data$estimated_revenue)
+correlation_value <- cor(listings_austin_min$minimum_nights, listings_austin_min$estimated_revenue)
 
 # Create the scatter plot
-ggplot(listings_data, aes(x=minimum_nights, y=estimated_revenue)) +
+ggplot(listings_austin_min, aes(x=minimum_nights, y=estimated_revenue)) +
   geom_point(alpha=0.5) +  # Adjust transparency
   geom_smooth(method="lm", color="blue", se=FALSE, formula = y ~ x) +  # Add regression line
-  annotate("text", x = max(listings_data$minimum_nights) - 5, 
-           y = max(listings_data$estimated_revenue), 
+  annotate("text", x = max(listings_austin_min$minimum_nights) - 5, 
+           y = max(listings_austin_min$estimated_revenue), 
            label = paste("Correlation =", round(correlation_value, 2)), 
            color = "blue", size = 4, hjust = 1, vjust = 1) +  # Add correlation value
   theme_minimal() +
@@ -1480,7 +1439,7 @@ these neighborhoods.
 
 ```{r}
 # Calculate the average estimated_revenue for each zip code
-avg_revenue_by_zip <- listings_data %>%
+avg_revenue_by_zip <- listings_austin_min %>%
   group_by(neighbourhood_cleansed) %>%
   summarize(avg_revenue = mean(estimated_revenue, na.rm = TRUE))
 
@@ -1511,15 +1470,15 @@ zip_map <- read.csv("./data//zip_map.csv", stringsAsFactors = FALSE)
 
 # Ensure both datasets have matching Zip Code column names and character data type
 zip_map$Zip.Code <- as.character(zip_map$Zip.Code)
-listings_data$Zip_Code <- as.character(listings_data$neighbourhood_cleansed)
+listings_austin_min$Zip_Code <- as.character(listings_austin_min$neighbourhood_cleansed)
 
 # Check for discrepancies in Zip Codes
-discrepancies <- setdiff(listings_data$Zip_Code, zip_map$Zip.Code)
+discrepancies <- setdiff(listings_austin_min$Zip_Code, zip_map$Zip.Code)
 if (length(discrepancies) > 0) {
-  cat("These Zip Codes from listings_data do not exist in zip_map:", paste(discrepancies, collapse = ", "))
+  cat("These Zip Codes from listings_austin_min do not exist in zip_map:", paste(discrepancies, collapse = ", "))
 } else {
   # 1. Compute Average Estimated Revenue by ZIP code
-  avg_revenue_by_zip <- listings_data %>%
+  avg_revenue_by_zip <- listings_austin_min %>%
     group_by(Zip_Code) %>%
     summarize(avg_revenue = mean(estimated_revenue, na.rm = TRUE))
 
@@ -1565,10 +1524,10 @@ For hosts aiming to maximise their revenue, it might be beneficial to consider s
 
 ```{r}
 # Categorise the Minimum Nights 
-listings_data$min_nights_category <- ifelse(listings_data$minimum_nights <= 7, "1-7 Nights", "8+ Nights")
+listings_austin_min$min_nights_category <- ifelse(listings_austin_min$minimum_nights <= 7, "1-7 Nights", "8+ Nights")
 
 # Group by Minimum Nights Category
-grouped_data <- listings_data %>%
+grouped_data <- listings_austin_min %>%
   group_by(min_nights_category) %>%
   summarise(total_revenue= sum(estimated_revenue), total_listings= n())
 
@@ -1599,11 +1558,11 @@ categorize_price <- function(df) {
 }
 
 #Apply function to each bed category
-listings_data <- listings_data %>%
+listings_austin_min <- listings_austin_min %>%
   group_by(beds_grouped) %>%
   group_modify(~ categorize_price(.))
 
-head(listings_data)
+head(listings_austin_min)
 
 ```
 
@@ -1615,12 +1574,12 @@ Hosts across all pricing categories might consider setting their minimum nights 
 
 ```{r}
 # Organising Pricing Category
-listings_data$price_category <- factor(listings_data$price_category, levels = c("Budget", "Mid-Range", "Premium", "Luxury"))
+listings_austin_min$price_category <- factor(listings_austin_min$price_category, levels = c("Budget", "Mid-Range", "Premium", "Luxury"))
 # Categorize the Minimum Nights 
-listings_data$min_nights_category <- ifelse(listings_data$minimum_nights <= 7, "1-7 Nights", "8+ Nights")
+listings_austin_min$min_nights_category <- ifelse(listings_austin_min$minimum_nights <= 7, "1-7 Nights", "8+ Nights")
 
 # Group by Minimum Nights Category
-grouped_data <- listings_data %>%
+grouped_data <- listings_austin_min %>%
   group_by(min_nights_category, price_category) %>%
   summarise(total_revenue= sum(estimated_revenue), total_listings= n()) %>%
   mutate(weighted_avg_revenue = total_revenue/total_listings)
@@ -1639,7 +1598,7 @@ ggplot(grouped_data, aes(x= min_nights_category, y= weighted_avg_revenue, fill= 
 The higher standard deviation in the Luxury category than the other categories indicates that our analysis for this segment might be less robust compared to the other segments.
 ```{r}
 #Distribution of Price by Number of Beds and Pricing Categories
-price_stats_by_beds_and_category <- listings_data %>%
+price_stats_by_beds_and_category <- listings_austin_min %>%
   group_by(beds_grouped, price_category) %>%
   summarise(
     mean_price = mean(price),
@@ -1655,13 +1614,13 @@ Given the skewed distribution of our data, with a higher proportion of Premium a
 
 ```{r}
 # The number of listings in each category combination
-listings_count <- listings_data %>%
+listings_count <- listings_austin_min %>%
   group_by(min_nights_category, price_category) %>%
   summarise(count= n())
 print(listings_count)
 
 # The proportions of listings in each category combination
-listings_proportions <- listings_data %>%
+listings_proportions <- listings_austin_min %>%
   group_by(min_nights_category) %>%
   count(price_category) %>%
   mutate(proportion= (n/sum(n)*100))
@@ -1670,7 +1629,7 @@ print(listings_proportions)
 ```
 
 ```{r}
-booking_frequency_summary <- listings_data %>%
+booking_frequency_summary <- listings_austin_min %>%
   group_by(price_category) %>%
   summarise(
     mean_booking_frequency = mean(booking_frequency_percentage),
@@ -1682,7 +1641,7 @@ booking_frequency_summary <- listings_data %>%
 print(booking_frequency_summary)
 
 #Plotting the booking frequency for each pricing category
-ggplot(listings_data, aes(x= price_category, y= booking_frequency_percentage, fill= price_category)) +
+ggplot(listings_austin_min, aes(x= price_category, y= booking_frequency_percentage, fill= price_category)) +
   geom_boxplot() +
   labs(title= "Distribution of Booking Frequency by Pricing Category", x= "Pricing Category", y= "Booking Frequency %") +
   theme_minimal() +
@@ -1692,7 +1651,7 @@ ggplot(listings_data, aes(x= price_category, y= booking_frequency_percentage, fi
 The standard deviation in booking frequency is high most likely due to the forward looking nature of the data.
 
 ```{r}
-booking_frequency_by_min_nights <- listings_data %>%
+booking_frequency_by_min_nights <- listings_austin_min %>%
   group_by(min_nights_category,price_category) %>%
   summarise(
     mean_booking_frequency = mean(booking_frequency_percentage),
@@ -1704,7 +1663,7 @@ booking_frequency_by_min_nights <- listings_data %>%
 print(booking_frequency_by_min_nights)
 
 #Plotting the booking frequency for each pricing category
-ggplot(listings_data, aes(x= min_nights_category, y= booking_frequency_percentage, fill= price_category)) +
+ggplot(listings_austin_min, aes(x= min_nights_category, y= booking_frequency_percentage, fill= price_category)) +
   geom_boxplot() +
   labs(title= "Distribution of Booking Frequency by Pricing Category", x= "Pricing Category", y= "Booking Frequency %", fill= "Price Category") +
   theme_minimal() +
@@ -1713,7 +1672,7 @@ ggplot(listings_data, aes(x= min_nights_category, y= booking_frequency_percentag
 
 ```{r}
 #Filter the data for 1-7 Minimum Nights
-filered_min_night_data <- listings_data %>% filter(minimum_nights <= 30)
+filered_min_night_data <- listings_austin_min %>% filter(minimum_nights <= 30)
 
 #Group by Price Category and Minimum Nights and calculate weighted average
 optimal_nights_data <- filered_min_night_data %>%
@@ -1745,7 +1704,7 @@ Given that the majority of our listings are concentrated within the 1-7 minimum 
 
 ```{r}
 #Histogram of Number of Beds
-ggplot(listings_data, aes(x= minimum_nights))+
+ggplot(listings_austin_min, aes(x= minimum_nights))+
   geom_histogram(binwidth = 1, fill= "skyblue", color= "black") +
   labs(title= "Distribution of Minimum Nights", x= "Minimum Nights", y= "Number of Listings") +
   theme_minimal()
@@ -1755,7 +1714,7 @@ We find that the optimal minimum night for price category of luxury and premium 
 
 ```{r}
 #Filter the data for 1-7 Minimum Nights
-filered_min_night_data <- listings_data %>% filter(minimum_nights <= 7)
+filered_min_night_data <- listings_austin_min %>% filter(minimum_nights <= 7)
 
 #Group by Price Category and Minimum Nights and calculate weighted average
 optimal_nights_data <- filered_min_night_data %>%
