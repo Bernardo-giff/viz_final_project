@@ -37,7 +37,6 @@ airbnb_color2 <- "#00A699"
 airbnb_color3 <- "#FC642D"
 airbnb_color4 <- "#484848"
 airbnb_color5 <- "#767676"
-background_color <- '#F2F2F2'
 ```
 
 # Introduction
@@ -223,8 +222,6 @@ ggplot(listings, aes(x = city, y = price, fill = city_color)) +
   scale_y_continuous(labels = scales::dollar_format()) +
   scale_fill_identity() +  # To use the custom colors
   theme_minimal() +
-  theme(panel.grid = element_blank(),
-        plot.background = element_rect(fill=background_color)) + 
   coord_cartesian(ylim = quantile(listings$price, c(0.25, 0.75)) + c(-1, 1.5) * IQR(listings$price))
 
 ```
@@ -260,8 +257,7 @@ ggplot(data = property_type_counts, aes(x = reorder(property_type, -count), y = 
        secondary_y = TRUE) +
   scale_y_continuous(sec.axis = sec_axis(~./max_count * 100, name = "Cumulative %")) +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, , size = 8),
-        panel.grid = element_blank())
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, , size = 8))
 
 
 ```
@@ -729,6 +725,7 @@ There is no way to distinguish between rentals that have been blocked by
 the host or haven been rented, for simplicity we will assume that
 rentals that are not available, have been rented by users.
 
+
 Let's first take a look at the 'listings_austin'. This dataset provides
 detailed information about each listing. By using the code below, we can
 get a quick overview of the first few rows, the structure of the dataset
@@ -742,6 +739,7 @@ head(listings_austin_min)
 str(listings_austin_min)
 summary(listings_austin_min)
 ```
+
 
 To wrap up our initial data exploration, let's list down all the columns
 present in the listings_austin_min. This will give us a roadmap of the
@@ -758,6 +756,9 @@ is clean and in the right format.
 
 ```{r}
 #Cleaning Data
+
+#Remove dollar signs and commas, then convert to numeric (Prices in calendar and listings)
+listings_austin_min$price <- as.numeric(gsub("[$,]", "", listings_austin_min$price))
 
 #Convert Minimum Nights to integer
 listings_austin_min$minimum_nights <- as.integer(listings_austin_min$minimum_nights)
@@ -1017,10 +1018,8 @@ ggplot(listings_austin_min, aes(x=as.factor(minimum_nights))) +
   geom_bar(fill= airbnb_color1) +
   labs(title = "Number of Listings by Minimum Nights", x="Minimum Nights", y= "Number of Listings") +
   scale_y_continuous(labels = scales::dollar_format()) +
-  theme_minimal() + 
-  theme(panel.grid = element_blank(),
-        plot.background = element_rect(fill=background_color))
-  
+  theme(panel.grid = element_blank()) +
+  theme_minimal()
 
 ```
 
@@ -1559,19 +1558,12 @@ if (length(discrepancies) > 0) {
 
 ```
 
+
 ###Start of Analysis####
 
-The results below indicate that listings with a shorter minimum nights
-requirement (1-7 nights) tend to generate higher revenue on average
-compared to those with a longer minimum nights requirement (8+ nights).
-This could be attributed to several factors, including higher demand for
-short-term stays, flexibility for travelers, and potentially higher
-nightly rates for short-term listings.
+The results below indicate that listings with a shorter minimum nights requirement (1-7 nights) tend to generate higher revenue on average compared to those with a longer minimum nights requirement (8+ nights). This could be attributed to several factors, including higher demand for short-term stays, flexibility for travelers, and potentially higher nightly rates for short-term listings.
 
-For hosts aiming to maximise their revenue, it might be beneficial to
-consider setting their minimum nights requirement within the 1-7 nights
-range. However, other factors such as location, amenities and guest
-preferences should also be taken into account when making this decision.
+For hosts aiming to maximise their revenue, it might be beneficial to consider setting their minimum nights requirement within the 1-7 nights range. However, other factors such as location, amenities and guest preferences should also be taken into account when making this decision.
 
 ```{r}
 # Categorise the Minimum Nights 
@@ -1593,19 +1585,7 @@ ggplot(grouped_data, aes(x= min_nights_category, y= weighted_avg_revenue, fill= 
   theme(legend.position = "none")
 ```
 
-We segmented the listings in our dataframe based on the number of beds,
-categorizing them into groups such as "1", "2", "3", "4", "5", and "6+".
-For each bed category, we further segmented the listings into pricing
-quartiles, classifying them as "Budget", "Mid-Range", "Premium", and
-"Luxury". Based on this segmentation, we make the assumption that then
-"Luxury" listings, irrespective of bed count, are situated in prime
-locations, offer superior amenities, and have consistently positive
-reviews. The price point is indicative of the premium offerings these
-listings provide. Conversely, the "Budget", "Mid-Range", and "'Premium"
-listings offer amenities and experiences that align with their
-respective price points. While this assumption provides a foundational
-guideline for our analysis, individual listings may have characteristics
-that deviate from these general categorizations.
+We segmented the listings in our dataframe based on the number of beds, categorizing them into groups such as "1", "2", "3", "4", "5", and "6+". For each bed category, we further segmented the listings into pricing quartiles, classifying them as "Budget", "Mid-Range", "Premium", and "Luxury". Based on this segmentation, we make the assumption that then "Luxury" listings, irrespective of bed count, are situated in prime locations, offer superior amenities, and have consistently positive reviews. The price point is indicative of the premium offerings these listings provide. Conversely, the "Budget", "Mid-Range", and "'Premium" listings offer amenities and experiences that align with their respective price points. While this assumption provides a foundational guideline for our analysis, individual listings may have characteristics that deviate from these general categorizations.
 
 ```{r}
 #Function to categorize listings based on quartiles within each bed category 
@@ -1629,18 +1609,11 @@ head(listings_austin_min)
 
 ```
 
-The consistency in the results across all pricing categories reinforces
-our earlier observation that listings with a shorter minimum nights
-requirement tend to generate higher revenue.
+The consistency in the results across all pricing categories reinforces our earlier observation that listings with a shorter minimum nights requirement tend to generate higher revenue.
 
-This trend holds true even when accounting for different pricing
-segments, suggesting that the minimum nights requirement plays a
-significant role in influencing revenue, regardless of the listing's
-price point.
+This trend holds true even when accounting for different pricing segments, suggesting that the minimum nights requirement plays a significant role in influencing revenue, regardless of the listing's price point.
 
-Hosts across all pricing categories might consider setting their minimum
-nights requirement within the 1-7 nights range to potentially maximise
-their revenue. We will dive deeper into the data.
+Hosts across all pricing categories might consider setting their minimum nights requirement within the 1-7 nights range to potentially maximise their revenue. We will dive deeper into the data.
 
 ```{r}
 # Organising Pricing Category
@@ -1665,11 +1638,7 @@ ggplot(grouped_data, aes(x= min_nights_category, y= weighted_avg_revenue, fill= 
   scale_fill_brewer(palette= "Set2")
   theme(axis.text.x = element_text(angle= 45, hjust= 1))
 ```
-
-The higher standard deviation in the Luxury category than the other
-categories indicates that our analysis for this segment might be less
-robust compared to the other segments.
-
+The higher standard deviation in the Luxury category than the other categories indicates that our analysis for this segment might be less robust compared to the other segments.
 ```{r}
 #Distribution of Price by Number of Beds and Pricing Categories
 price_stats_by_beds_and_category <- listings_austin_min %>%
@@ -1684,12 +1653,7 @@ price_stats_by_beds_and_category <- listings_austin_min %>%
 print(price_stats_by_beds_and_category)
 ```
 
-Given the skewed distribution of our data, with a higher proportion of
-Premium and Luxury listings in the 1-7 nights category, it's essential
-to approach our analysis with caution. We cannot solely rely on the
-aggregated insights from the 1-7 nights category. Instead, it's crucial
-to delve deeper and examine the revenue metrics for each individual
-minimum night within this category to draw more accurate conclusions.
+Given the skewed distribution of our data, with a higher proportion of Premium and Luxury listings in the 1-7 nights category, it's essential to approach our analysis with caution. We cannot solely rely on the aggregated insights from the 1-7 nights category. Instead, it's crucial to delve deeper and examine the revenue metrics for each individual minimum night within this category to draw more accurate conclusions.
 
 ```{r}
 # The number of listings in each category combination
@@ -1727,8 +1691,7 @@ ggplot(listings_austin_min, aes(x= price_category, y= booking_frequency_percenta
   theme(legend.position = "none")
 ```
 
-The standard deviation in booking frequency is high most likely due to
-the forward looking nature of the data.
+The standard deviation in booking frequency is high most likely due to the forward looking nature of the data.
 
 ```{r}
 booking_frequency_by_min_nights <- listings_austin_min %>%
@@ -1768,12 +1731,11 @@ ggplot(optimal_nights_data, aes(x= as.factor(minimum_nights), y= weighted_avg_re
   theme(axis.text.x = element_text(angle= 45, hjust = 1))
 ```
 
-However, it is inaccurate to say that the optimal minimum night for
-luxury is 9. Because there is only one luxury listing at 54,000.
+However, it is inaccurate to say that the optimal minimum night for luxury is 9. Because there is only one luxury listing at 197,000. 
 
 ```{r}
 #Filter for Luxury Listings with minimum nights of 9
-luxury_min_night_9 <- filtered_min_night_data %>%
+luxury_min_night_9 <- listings_austin_min %>%
   filter(price_category == "Luxury", minimum_nights == 9) %>%
   summarise(
     number_of_listings= n(),
@@ -1781,17 +1743,7 @@ luxury_min_night_9 <- filtered_min_night_data %>%
   )
 print(luxury_min_night_9)
 ```
-
-Given that the majority of our listings are concentrated within the 1-7
-minimum nights range, we believe that focusing our analysis on this
-segment will provide the most representative and actionable insights.
-Analyzing this segment allows us to make data-driven decisions based on
-where most of our business activity occurs. While we acknowledge the
-presence of listings outside this range, their relatively smaller
-proportion might introduce variability that could skew our overall
-understanding. Therefore, our primary analysis will center on the 1-7
-nights range, ensuring that our insights and recommendations are
-grounded in the most prevalent segment of our data.
+Given that the majority of our listings are concentrated within the 1-7 minimum nights range, we believe that focusing our analysis on this segment will provide the most representative and actionable insights. Analyzing this segment allows us to make data-driven decisions based on where most of our business activity occurs. While we acknowledge the presence of listings outside this range, their relatively smaller proportion might introduce variability that could skew our overall understanding. Therefore, our primary analysis will center on the 1-7 nights range, ensuring that our insights and recommendations are grounded in the most prevalent segment of our data.
 
 ```{r}
 #Histogram of Number of Beds
@@ -1801,9 +1753,7 @@ ggplot(listings_austin_min, aes(x= minimum_nights))+
   theme_minimal()
 ```
 
-We find that the optimal minimum night for price category of luxury and
-premium is 4 (in terms of maximising revenue). For Mid-Range, it is 5
-and for budget, it is 3.
+We find that the optimal minimum night for price category of luxury and premium is 4 (in terms of maximising revenue). For Mid-Range, it is 5 and for budget, it is 3. 
 
 ```{r}
 #Filter the data for 1-7 Minimum Nights
@@ -1840,12 +1790,14 @@ of days available. We will calculate the occupancy per property and then
 analyze the distribution between listing offering of entire apartments
 vs single rooms.
 
-Assumptions for H3 - Listings that have 0 reviews and 0 availability for
-the next 365 days will be removed from the data, and we will assume that
-the host have blocked these listings. - Given the Airbnb data, there is
-no way to distinguish between rentals that have been blocked by the host
-or haven been rented, for simplicity we will assume that rentals that
-are not available, have been rented by users.
+Assumptions for H3
+- Listings that have 0 reviews and 0 availability for the
+next 365 days will be removed from the data, and we will assume that the
+host have blocked these listings.
+- Given the Airbnb data, there is no
+way to distinguish between rentals that have been blocked by the host or
+haven been rented, for simplicity we will assume that rentals that are
+not available, have been rented by users.
 
 ```{r}
 # Removing dollar sign and commas
