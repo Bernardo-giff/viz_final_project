@@ -130,7 +130,8 @@ listings <- bind_rows(listings_nyc, listings_sf, listings_austin)
 
 We will be mainly working with the listings data at first. Therefore, we
 check the values of the dataset to get insight on their distributions
-and possible data preparation tasks. We start by checking the price column, since it's one of our main focuses.
+and possible data preparation tasks. We start by checking the price
+column, since it's one of our main focuses.
 
 ```{r}
 # Starting EDA
@@ -149,7 +150,6 @@ head(listings$price)
 
 After inspecting the first few rows, we see that that is because of the
 \$ sign. So we have to substitute these:
-
 
 ```{r}
 # That's because it's saved with the $ and commas (currency)
@@ -176,13 +176,13 @@ housing prices, and so if the revenue per year for a given listing is
 greater than the expected rent price per year, the listing has a higher
 ROI on investing in homes than regular rent. We will make no assumptions
 on the return in comparison to house speculation, under the thesis that
-one can speculate with either an Airbnb property or regular renting properties. The
-p.a revenue from a listing takes in consideration the expected occupancy
-per year, given in the availability_365 column. A house can be
-unavailable if it's booked or if the owner takes the listing off the
-site. We make no assumptions on the owners taking the listings off the
-site. So the total revenue is the price per night times 365 minus the
-value in the availability 365 column.
+one can speculate with either an Airbnb property or regular renting
+properties. The p.a revenue from a listing takes in consideration the
+expected occupancy per year, given in the availability_365 column. A
+house can be unavailable if it's booked or if the owner takes the
+listing off the site. We make no assumptions on the owners taking the
+listings off the site. So the total revenue is the price per night times
+365 minus the value in the availability 365 column.
 
 ```{r}
 # Calculate one-year return on investment (ROI) for listings
@@ -260,8 +260,11 @@ ggplot(data = property_type_counts, aes(x = reorder(property_type, -count), y = 
 
 
 ```
-We see that the number of listings is highly concentrated in a couple of types. Therefore, we wiull take the top 10 properties, which accounts for over 90% of the data
-  
+
+We see that the number of listings is highly concentrated in a couple of
+types. Therefore, we wiull take the top 10 properties, which accounts
+for over 90% of the data
+
 ```{r}
 listings_filtered <- listings %>%
   group_by(property_type)%>%
@@ -278,7 +281,9 @@ ggplot(data=listings_filtered, aes(x= reorder(property_type, +n_properties), y=n
   coord_flip()+
   labs(title='Count of listings by type', x="Property type", y='Number of listings')
 ```
-Now we check how the proportion of property types is distributed accross the different cities.
+
+Now we check how the proportion of property types is distributed accross
+the different cities.
 
 ```{r}
 relevant_listings = unique(listings_filtered$property_type)
@@ -511,17 +516,16 @@ for 1 bedroom apartments are much higher in NYC and SF than in Austin.
 Now we need to connect that to the expected revenues from Airbnb
 listings. For that, we store the the median rent prices for one bedroom
 appartments in separate variables, and compare them row by row with the
-expected monthly revenue of the airbnb listings. We define the revenue p.a. as:
+expected monthly revenue of the airbnb listings. We define the revenue
+p.a. as:
 
 $$
 Revenue_{p.a.} = \frac{(365 - Availability_{365 days})*Price_{per\ night}}{12}
-$$
-The the ROI % of an airbnb over the median rent is given by:
+$$ The the ROI % of an airbnb over the median rent is given by:
 
 $$
 ROI\ \% = \frac{Revenue_{p.a.} - median(Rent)}{median(Rent)}
 $$
-
 
 ```{r}
 # Extract the median rent prices for 1-bedroom apartments in NYC, SF, and Austin
@@ -661,26 +665,51 @@ p <- ggplot(plot_data, aes(x = Nights)) +
 
 print(p)
 ```
-Based on the plot above, we can conclude that for any city, Airbnb's have a better ROI than regular renting past a certain threshold of nights. Furthermore, we see that that threshold and the overall potential of return for Austin is far superior than those of NYC and SF.
+
+Based on the plot above, we can conclude that for any city, Airbnb's
+have a better ROI than regular renting past a certain threshold of
+nights. Furthermore, we see that that threshold and the overall
+potential of return for Austin is far superior than those of NYC and SF.
 
 # Hypothesis 2
 
-We hypothesise that an optimal number of minimum nights exists for maximising Airbnb listing revenue. We aim to identify this optimal number by examining the relationship between minimum nights, price and booking frequency. Our goal is to provide valuable insights for potential Airbnb investors by uncovering the most lucrative strategy for setting minimum night requirements, considering additional factors like bed count for example.
+We hypothesise that an optimal number of minimum nights exists for
+maximising Airbnb listing revenue. We aim to identify this optimal
+number by examining the relationship between minimum nights, price and
+booking frequency. Our goal is to provide valuable insights for
+potential Airbnb investors by uncovering the most lucrative strategy for
+setting minimum night requirements, considering additional factors like
+bed count for example.
 
-Assumptions:
-- Given the Airbnb data, there is no way to distinguish between rentals that have been blocked by the host or haven been rented, for simplicity we will assume that rentals that are not available, have been rented by users.
+Assumptions: - Given the Airbnb data, there is no way to distinguish
+between rentals that have been blocked by the host or haven been rented,
+for simplicity we will assume that rentals that are not available, have
+been rented by users.
+
+#Start of EDA \# Hypothesis 2
+
+We hypothesize that an optimal number of minimum nights exists for
+maximising Airbnb listing revenue. We aim to identify this optimal
+number by examining the relationship between minimum nights, price and
+booking frequency. Our goal is to provide valuable insights for
+potential Airbnb investors by uncovering the most lucrative strategy for
+setting minimum night requirements, considering additional factors like
+bed count for example.
+
+Assumptions: - Given the Airbnb data, there is no way to distinguish
+between rentals that have been blocked by the host or haven been rented,
+for simplicity we will assume that rentals that are not available, have
+been rented by users.
 
 #Start of EDA
-# Hypothesis 2
 
-We hypothesize that an optimal number of minimum nights exists for maximising Airbnb listing revenue. We aim to identify this optimal number by examining the relationship between minimum nights, price and booking frequency. Our goal is to provide valuable insights for potential Airbnb investors by uncovering the most lucrative strategy for setting minimum night requirements, considering additional factors like bed count for example.
+Before diving into our analysis, it's essential to set up our
+environment. We start by installing and loading the necessary packages
+for our Exploratory Data Analysis (EDA). Our analysis will be based on
+three datasets: listings_data, calendar data, and reviews_data. These
+datasets provide comprehensive information about the listings, their
+availability throughout the year and the reviews they've received.
 
-Assumptions:
-- Given the Airbnb data, there is no way to distinguish between rentals that have been blocked by the host or haven been rented, for simplicity we will assume that rentals that are not available, have been rented by users.
-
-#Start of EDA
-
-Before diving into our analysis, it's essential to set up our environment. We start by installing and loading the necessary packages for our Exploratory Data Analysis (EDA). Our analysis will be based on three datasets: listings_data, calendar data, and reviews_data. These datasets provide comprehensive information about the listings, their availability throughout the year and the reviews they've received.
 ```{r}
 # Installing some packages needed for EDA
 #install.packages(c("dplyr", "ggplot2", "tidyr"))
@@ -695,7 +724,11 @@ calendar_data <- read.csv("./data/calendar/calendar_austin.csv")
 reviews_data <- read.csv("./data/reviews/reviews_austin.csv")
 ```
 
-Let's first take a look at the 'listings_data'. This dataset provides detailed information about each listing. By using the code below, we can get a quick overview of the first few rows, the structure of the dataset and some basic statistics for each column.
+Let's first take a look at the 'listings_data'. This dataset provides
+detailed information about each listing. By using the code below, we can
+get a quick overview of the first few rows, the structure of the dataset
+and some basic statistics for each column.
+
 ```{r}
 # Quick overview of listings data
 head(listings_data)
@@ -703,7 +736,9 @@ str(listings_data)
 summary(listings_data)
 ```
 
-Next, we explore the 'calendar_data'. This dataset gives us insights into the availability and pricing of listings throughout the year.
+Next, we explore the 'calendar_data'. This dataset gives us insights
+into the availability and pricing of listings throughout the year.
+
 ```{r}
 # Quick overview of calendar data
 head(calendar_data)
@@ -711,7 +746,9 @@ str(calendar_data)
 summary(calendar_data)
 ```
 
-Our third dataset, 'reviews_data', captures the details of the reviewers. 
+Our third dataset, 'reviews_data', captures the details of the
+reviewers.
+
 ```{r}
 # Quick overview of reviews data
 head(reviews_data)
@@ -719,14 +756,18 @@ str(reviews_data)
 summary(reviews_data)
 ```
 
-To wrap up our initial data exploration, let's list down all the columns present in the listings_data. This will give us a roadmap of the variables we have at our disposal for the analysis.
+To wrap up our initial data exploration, let's list down all the columns
+present in the listings_data. This will give us a roadmap of the
+variables we have at our disposal for the analysis.
+
 ```{r}
 # Columns for listing data
 column_names <- names(listings_data)
 print(column_names)
 ```
 
-Before diving deeper into our analysis, it is crucial to ensure our data is clean and in the right format. 
+Before diving deeper into our analysis, it is crucial to ensure our data
+is clean and in the right format.
 
 ```{r}
 #Cleaning Data
@@ -763,8 +804,12 @@ listings_data$review_scores_rating <- round(listings_data$review_scores_rating, 
 listings_data$neighbourhood <- as.character(listings_data$neighbourhood)
 ```
 
+Missing data can skew our analysis and lead to misleading conclusions,
+so it is crucial to ensure that the data columns we will be using are
+robust and complete. Everything looks fine (no NAs) except in review
+scores which makes sense as not all people are expected to leave a
+review.
 
-Missing data can skew our analysis and lead to misleading conclusions, so it is crucial to ensure that the data columns we will be using are robust and complete. Everything looks fine (no NAs) except in review scores which makes sense as not all people are expected to leave a review.
 ```{r}
 #Looking at number of NAs for certain columns in Listings (Df that I will be using)
 
@@ -797,7 +842,11 @@ na_neighbourhood_listings <- sum(is.na(listings_data$neighbourhood))
 cat("Number of NA values in Neighbourhood (listings):", na_neighbourhood_listings, "\n")
 ```
 
-Before diving deep, we've taken a snapshot of our key data columns. This quick overview of prices, minimum nights, reviews and more, providing a foundational understanding, ensuring our later analysis is grounded in context.
+Before diving deep, we've taken a snapshot of our key data columns. This
+quick overview of prices, minimum nights, reviews and more, providing a
+foundational understanding, ensuring our later analysis is grounded in
+context.
+
 ```{r}
 #Checking summary stats for relevant columns
 
@@ -824,7 +873,14 @@ print(table(listings_data$neighbourhood))
 
 ```
 
-We visualised the distribution of listing prices to identify potential outliers. While the broader view gave us the full range, a closer look revealed that most listings fall below 5000. To ensure a more accurate analysis, we've refined our dataset to exclude extreme values, focusing on listings priced between 10 and 800. Given that the average monthly rent is 1500 dollars in Austin, this seems like a good range to focus on.
+We visualised the distribution of listing prices to identify potential
+outliers. While the broader view gave us the full range, a closer look
+revealed that most listings fall below 5000. To ensure a more accurate
+analysis, we've refined our dataset to exclude extreme values, focusing
+on listings priced between 10 and 800. Given that the average monthly
+rent is 1500 dollars in Austin, this seems like a good range to focus
+on.
+
 ```{r}
 #Price
 boxplot(listings_data$price, main="Boxplot of Prices", ylab="Price")
@@ -835,7 +891,14 @@ listings_data <- listings_data[listings_data$price>=10 & listings_data$price <= 
 cat("Number of rows after filtering:", nrow(listings_data), "\n")
 ```
 
-We examined the distribution of minimum nights required for listings. The majority of listings require stays well under 500 nights. To focus on more typical listings and avoid potential outliers, we've limited our dataset to those requiring 30 nights or fewer.This makes sense as Airbnb originally termed "Air Bed & Breakfast" underscores its focus on short term stays. Austin's regulations, which define short-term rentals as those less than 30 consecutive days aligns with this concept.
+We examined the distribution of minimum nights required for listings.
+The majority of listings require stays well under 500 nights. To focus
+on more typical listings and avoid potential outliers, we've limited our
+dataset to those requiring 30 nights or fewer.This makes sense as Airbnb
+originally termed "Air Bed & Breakfast" underscores its focus on short
+term stays. Austin's regulations, which define short-term rentals as
+those less than 30 consecutive days aligns with this concept.
+
 ```{r}
 #Minimum Nights
 boxplot(listings_data$minimum_nights, main="Boxplot of Minimum Nights", ylab="Minimum Nights")
@@ -846,7 +909,10 @@ listings_data <- listings_data[listings_data$minimum_nights <=30, ]
 cat("Number of rows after filtering:", nrow(listings_data), "\n")
 ```
 
-We analysed the distribution of the number of reviews for listings. To ensure a more representative dataset and eliminate extreme outliers, we've restricted our analysis to listings with 600 reviews or fewer.
+We analysed the distribution of the number of reviews for listings. To
+ensure a more representative dataset and eliminate extreme outliers,
+we've restricted our analysis to listings with 600 reviews or fewer.
+
 ```{r}
 #Number of Reviews
 boxplot(listings_data$number_of_reviews, main="Boxplot of Number of Reviews ", ylab="Number of Reviews")
@@ -855,7 +921,10 @@ listings_data <- listings_data[listings_data$number_of_reviews <=600, ]
 cat("Number of rows after filtering:", nrow(listings_data), "\n")
 ```
 
-We visually inspected the distribution of 'Availability 365' and 'Review Score Ratings' using boxplots. This helps us understand the spread of these variables.
+We visually inspected the distribution of 'Availability 365' and 'Review
+Score Ratings' using boxplots. This helps us understand the spread of
+these variables.
+
 ```{r}
 # Boxplots to visually look at distribution
 
@@ -866,12 +935,17 @@ boxplot(listings_data$availability_365, main="Boxplot of Availability 365", ylab
 boxplot(listings_data$review_scores_rating, main="Boxplot of Review Score Rating", ylab="Review Score Rating")
 ```
 
-.To better understand the dynamics of our listings, we've derived three new metrics:
-1. Booking Frequency: Calculated as the difference between a full year (365 days) and the number of days a listing is available.
-2. Booking Frequency Percentage: Represents the proportion of the year a listing is booked, expressed as a percentage (to one deicmal place).
-3. Estimated Revenue: An approximation of the annual revenue for a listing, computed by multiplying its price with its booking frequency.
+.To better understand the dynamics of our listings, we've derived three
+new metrics: 1. Booking Frequency: Calculated as the difference between
+a full year (365 days) and the number of days a listing is available. 2.
+Booking Frequency Percentage: Represents the proportion of the year a
+listing is booked, expressed as a percentage (to one deicmal place). 3.
+Estimated Revenue: An approximation of the annual revenue for a listing,
+computed by multiplying its price with its booking frequency.
 
-These metrics will be crucial in our later analysis, offering insights into the profitability and popularity of listings.
+These metrics will be crucial in our later analysis, offering insights
+into the profitability and popularity of listings.
+
 ```{r}
 #Creating booking frequency
 listings_data$booking_frequency <- (365 - listings_data$availability_365)
@@ -881,10 +955,13 @@ listings_data$booking_frequency_percentage <- round(((365 - listings_data$availa
 listings_data$estimated_revenue <- listings_data$price * listings_data$booking_frequency
 ```
 
-_Start of Main EDA
+\_Start of Main EDA
 
+As you can see below, the distribution of prices for listings is
+left-skewed, meaning majority of listings are priced on the lower end
+with fewer listings having a higher price. Let's see the distribution of
+prices by minimum nights.
 
-As you can see below, the distribution of prices for listings is left-skewed, meaning majority of listings are priced on the lower end with fewer listings having a higher price. Let's see the distribution of prices by minimum nights.
 ```{r}
 #Distribution of Prices
 ggplot(listings_data, aes(x=price)) + 
@@ -900,12 +977,18 @@ ggplot(listings_data, aes(y=price)) +
   
 ```
 
-The histogram below visualises the distribution of listing prices segmented by the minimum number of nights required for booking. Each panel represents a distinct minimum night requirement and the y-axis indicates the number of listings within each price bin.
+The histogram below visualises the distribution of listing prices
+segmented by the minimum number of nights required for booking. Each
+panel represents a distinct minimum night requirement and the y-axis
+indicates the number of listings within each price bin.
 
-Across most minimum night categories, the price distribution is predominantly left-skewed.
+Across most minimum night categories, the price distribution is
+predominantly left-skewed.
 
-This indicates that a majority of listings, regardless of their minimum night requirement, are priced on the lower end of the spectrum.
-Such a trend suggests that more affordable listings tend to be more common on the platform, irrespective of the duration of stay they cater to.
+This indicates that a majority of listings, regardless of their minimum
+night requirement, are priced on the lower end of the spectrum. Such a
+trend suggests that more affordable listings tend to be more common on
+the platform, irrespective of the duration of stay they cater to.
 
 ```{r}
 # Distribution of of prices by minimum nights
@@ -917,13 +1000,16 @@ ggplot(listings_data, aes(x=price, fill= as.factor(minimum_nights)))+
   
 ```
 
-The boxplot provides insights into the distribution of listing prices based on the minimum number of nights required for booking.
+The boxplot provides insights into the distribution of listing prices
+based on the minimum number of nights required for booking.
 
-. Median price for a single night is around 120.
-. Prices vary widely for 1-4 night stays, with many outliers.
-. 5-6 night stays show a reduced price range, with a slight rise at 7 nights.
-. 9-night stays resemble 4-night stays in terms of price distribution.
-. Beyond 10 nights, for the most part, prices stabilize with most listings priced between 100 and 200.
+. Median price for a single night is around 120. . Prices vary widely
+for 1-4 night stays, with many outliers. . 5-6 night stays show a
+reduced price range, with a slight rise at 7 nights. . 9-night stays
+resemble 4-night stays in terms of price distribution. . Beyond 10
+nights, for the most part, prices stabilize with most listings priced
+between 100 and 200.
+
 ```{r}
 # Another plot of Dstribution of Prices by Minimum Nights
 ggplot(listings_data, aes(x= as.factor(minimum_nights), y=price, fill= as.factor(minimum_nights))) +
@@ -932,14 +1018,19 @@ ggplot(listings_data, aes(x= as.factor(minimum_nights), y=price, fill= as.factor
   theme_minimal() +
   theme(legend.position = "none")
 ```
-The bar chart visualises the distribution of Airbnb listings based on the minimum number of nights required for booking.
 
-.A significant majority of listings prefer short stays, with 1 and 2-night minmum stays each having just over 4000 listings.
-.3-night minimumstays are also popular, nearing 1500 listings.
-.There's a sharp decline in listings from 4 to 7 nights.
-.Beyond 7 nights, listings are sparse, with a slight resurgence at 30 nights.
+The bar chart visualises the distribution of Airbnb listings based on
+the minimum number of nights required for booking.
 
-This trend indicates that most hosts in Austin prefer short-term bookings, with a few accommodating longer stays.
+.A significant majority of listings prefer short stays, with 1 and
+2-night minmum stays each having just over 4000 listings. .3-night
+minimumstays are also popular, nearing 1500 listings. .There's a sharp
+decline in listings from 4 to 7 nights. .Beyond 7 nights, listings are
+sparse, with a slight resurgence at 30 nights.
+
+This trend indicates that most hosts in Austin prefer short-term
+bookings, with a few accommodating longer stays.
+
 ```{r}
 # Number of Listings by Minimum Nights Plot
 ggplot(listings_data, aes(x=as.factor(minimum_nights))) +
@@ -948,16 +1039,23 @@ ggplot(listings_data, aes(x=as.factor(minimum_nights))) +
   theme_minimal()
 
 ```
-The following bar chart represents the weighted average price of Airbnb listings based on the minimum number of nights required for booking.
 
-.The weighted average price increases from nights 1 to 4, peaking at approximately 275 for 4-night stays.
-.A decline is observed from nights 5 to 8, with the lowest average around 140 for 8-night stays.
-.There's a noticeable spike at 9 nights, likely influenced by a limited number of listings.
-.Prices for 10 to 21 nights fluctuate within the 100-200 range, with exceptions at 17 and 18 nights.
-.Another spike is seen at 24 nights, potentially due to fewer listings.
-.The trend from 25 to 30 nights shows a gradual decrease in average prices.
+The following bar chart represents the weighted average price of Airbnb
+listings based on the minimum number of nights required for booking.
 
-This analysis suggests that while short stays (1-4 nights) tend to have higher prices, there are specific minumum night where prices spike, possibly influenced by limited listings.
+.The weighted average price increases from nights 1 to 4, peaking at
+approximately 275 for 4-night stays. .A decline is observed from nights
+5 to 8, with the lowest average around 140 for 8-night stays. .There's a
+noticeable spike at 9 nights, likely influenced by a limited number of
+listings. .Prices for 10 to 21 nights fluctuate within the 100-200
+range, with exceptions at 17 and 18 nights. .Another spike is seen at 24
+nights, potentially due to fewer listings. .The trend from 25 to 30
+nights shows a gradual decrease in average prices.
+
+This analysis suggests that while short stays (1-4 nights) tend to have
+higher prices, there are specific minumum night where prices spike,
+possibly influenced by limited listings.
+
 ```{r}
 # Calculate weighted average
 weighted_avg_price <- listings_data %>%
@@ -974,16 +1072,25 @@ ggplot(weighted_avg_price, aes(x= as.factor(minimum_nights), y= weighted_avg, fi
   theme_minimal() +
   theme(legend.position = "none")
 ```
-The scatter plot below visualises the relationship between the price of Airbnb listings and the minimum number of nights required for booking.
 
-.Nights 1 to 3 display a dense concentration of points, forming almost straight lines up to 800.
-.Nights 4 and 5 have a similar pattern up to around 400, with some scattered points beyond this range.
-.Night 6 shows a denser concentration below 200, with fewer scattered points above this mark.
-.Night 7 has a consistent distribution up to 300, with some outliers reaching up to 600.
-.For nights 8 to 29, most listings are priced below 300, with occasional outliers.
-.Night 30 presents a unique pattern with a dense line up to 400, followed by scattered points, some reaching above 500.
+The scatter plot below visualises the relationship between the price of
+Airbnb listings and the minimum number of nights required for booking.
 
-The scatter plot indicates that shorter stays (1-3 nights) tend to have a wider range of prices, while longer stays (8-29 nights) generally have listings priced below 300. The 30-night stays show a mix of both patterns.
+.Nights 1 to 3 display a dense concentration of points, forming almost
+straight lines up to 800. .Nights 4 and 5 have a similar pattern up to
+around 400, with some scattered points beyond this range. .Night 6 shows
+a denser concentration below 200, with fewer scattered points above this
+mark. .Night 7 has a consistent distribution up to 300, with some
+outliers reaching up to 600. .For nights 8 to 29, most listings are
+priced below 300, with occasional outliers. .Night 30 presents a unique
+pattern with a dense line up to 400, followed by scattered points, some
+reaching above 500.
+
+The scatter plot indicates that shorter stays (1-3 nights) tend to have
+a wider range of prices, while longer stays (8-29 nights) generally have
+listings priced below 300. The 30-night stays show a mix of both
+patterns.
+
 ```{r}
 #Scatter Plot of Price vs Minimum Nights
 ggplot(listings_data, aes(x=minimum_nights, y=price)) +
@@ -991,11 +1098,22 @@ ggplot(listings_data, aes(x=minimum_nights, y=price)) +
   labs(title= "Scatter Plot of Price vs Minimum Nights", x= "Minimum Nights", y= "Price ($)")+
   theme_minimal()
 ```
-The heatmap below provides a visual representation of the distribution of Airbnb listing prices based on the minimum number of nights required for booking.
 
-For Category 1 (1 Night), listings are mainly priced between 80-100, with a notable presence in the 100-150 range. Category 2 (2 Nights) predominantly sees listings in the 100-150 bracket. Category 3 (3 Nights) has a more uniform distribution, especially between 100-200. Category 4 (4-7 Nights) mainly features listings priced at 80-100, while Category 5 (8-30 Nights) mainly features listings priced at 80-120.
+The heatmap below provides a visual representation of the distribution
+of Airbnb listing prices based on the minimum number of nights required
+for booking.
 
-The heatmap suggests that shorter stays (1-2 nights) have a wider variety of prices, with a significant number of listings priced below 150. 
+For Category 1 (1 Night), listings are mainly priced between 80-100,
+with a notable presence in the 100-150 range. Category 2 (2 Nights)
+predominantly sees listings in the 100-150 bracket. Category 3 (3
+Nights) has a more uniform distribution, especially between 100-200.
+Category 4 (4-7 Nights) mainly features listings priced at 80-100, while
+Category 5 (8-30 Nights) mainly features listings priced at 80-120.
+
+The heatmap suggests that shorter stays (1-2 nights) have a wider
+variety of prices, with a significant number of listings priced below
+150.
+
 ```{r}
 listings_data$min_nights_bin <- cut(listings_data$minimum_nights,
                                     breaks= c(0,1,2,3,7,30),
@@ -1012,11 +1130,17 @@ ggplot(listings_data, aes(x= as.numeric(min_nights_bin), y= price)) +
 
 
 ```
+
 Below are the key statistics for Airbnb listing prices.
 
-The average listing price is approximately 192.43 with a median of 145.The standard deviation of 150.91 suggests a wide variability in the listing prices, which is something that needs to be looked at more closely.
+The average listing price is approximately 192.43 with a median of
+145.The standard deviation of 150.91 suggests a wide variability in the
+listing prices, which is something that needs to be looked at more
+closely.
 
-The correlation coefficient of around -0.15 indicates a weak negative relationship between minimum number of nights and listing price.
+The correlation coefficient of around -0.15 indicates a weak negative
+relationship between minimum number of nights and listing price.
+
 ```{r}
 price_stats <- listings_data %>%
   summarise(
@@ -1032,12 +1156,20 @@ print(price_stats)
 correlation <- cor(listings_data$minimum_nights, listings_data$price, method= "pearson", use= "complete.obs")
 print(correlation)
 ```
-Given the high standard deviation in listing prices, we look at possible option to segment the prices to understand the distribution better. One common method to segment the price is by using qauntiles as shown in the output below
 
-.The interquartile range (IQ), represented by the box's height, spans from 91 to 242.
-.The whiskers of the boxplot extend up to approximately 475, indicating the range within which most of the data points lie.
+Given the high standard deviation in listing prices, we look at possible
+option to segment the prices to understand the distribution better. One
+common method to segment the price is by using qauntiles as shown in the
+output below
 
-To sum up, while the majority of listings are priced within a relatively moderate range, there's a noticeable segment of premium-priced listings that skew the overall distribution.
+.The interquartile range (IQ), represented by the box's height, spans
+from 91 to 242. .The whiskers of the boxplot extend up to approximately
+475, indicating the range within which most of the data points lie.
+
+To sum up, while the majority of listings are priced within a relatively
+moderate range, there's a noticeable segment of premium-priced listings
+that skew the overall distribution.
+
 ```{r}
 #Let's look at some possible segmentation by price due to high sd in prices
 #Calculate quantiles for price
@@ -1052,13 +1184,19 @@ ggplot(listings_data, aes(y= price)) +
   labs(title= "Boxplot of Listing Prices", y= "Prices") +
   theme_minimal()
 ```
-The histograms depict the booking frequency both in terms of days booked and as a percentage of the year.
 
-.High Frequency: Nearly 4,000 listings are booked for 95%-100% of the year, indicating high demand.
-.Low Frequency: About 2,000 listings have a booking rate of 0%-5%, suggesting limited popularity or availability.
-.Mid-Range: Listings with a 50%-75% booking rate show varied numbers, with a noticeable dip at 45% and a peak near 75%.
+The histograms depict the booking frequency both in terms of days booked
+and as a percentage of the year.
 
-In summary, listings are either highly popular or less sought after, with few in the middle range.
+.High Frequency: Nearly 4,000 listings are booked for 95%-100% of the
+year, indicating high demand. .Low Frequency: About 2,000 listings have
+a booking rate of 0%-5%, suggesting limited popularity or availability.
+.Mid-Range: Listings with a 50%-75% booking rate show varied numbers,
+with a noticeable dip at 45% and a peak near 75%.
+
+In summary, listings are either highly popular or less sought after,
+with few in the middle range.
+
 ```{r}
 #Distribution of booking frequency
 ggplot(listings_data, aes(x= booking_frequency)) +
@@ -1072,13 +1210,15 @@ ggplot(listings_data, aes(x= booking_frequency_percentage)) +
   labs(title= "Distribution of Booking Frequency (%)", x= "Percentage of Days Booked", y= "Number of Listings") +
   theme_minimal()
 ```
+
 The plot below shows the following:
 
-.Short Stays (1-4 nights): Booking frequency rises from just above 50% to nearly 75%.
-.Mid-range Stays (5-8 nights): A slight dip at 5 nights, but generally stable.
-.Outliers: A spike at 9 nights near 100%, likely due to fewer listings. No data for 11, 19, 22, and
-23 nights.
-.Longer Stays (10+ nights): Frequencies vary between 50% and 88%, with dips at 15 and 27 nights to below 25%.
+.Short Stays (1-4 nights): Booking frequency rises from just above 50%
+to nearly 75%. .Mid-range Stays (5-8 nights): A slight dip at 5 nights,
+but generally stable. .Outliers: A spike at 9 nights near 100%, likely
+due to fewer listings. No data for 11, 19, 22, and 23 nights. .Longer
+Stays (10+ nights): Frequencies vary between 50% and 88%, with dips at
+15 and 27 nights to below 25%.
 
 ```{r}
 #Grouping by Minimum Nights and calculating average booking frequency
@@ -1097,9 +1237,16 @@ ggplot(booking_by_min_nights, aes(x= minimum_nights, y= avg_booking_frequency_pe
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust= 1))
 ```
-The central tendency of booking frequency is around 70%. The data spans from near 25% to a maximum of 100% booking frequency.
 
-The median booking frequency for listings is around 70% of the year. However, a significant number of listings have a booking frequency below the median, indicating variability in how often listings are booked. Some listings are booked almost all year round, while others are available more frequently.
+The central tendency of booking frequency is around 70%. The data spans
+from near 25% to a maximum of 100% booking frequency.
+
+The median booking frequency for listings is around 70% of the year.
+However, a significant number of listings have a booking frequency below
+the median, indicating variability in how often listings are booked.
+Some listings are booked almost all year round, while others are
+available more frequently.
+
 ```{r}
 # Boxplot of Booking frequency %
 ggplot(listings_data, aes(y= booking_frequency_percentage)) +
@@ -1107,15 +1254,22 @@ ggplot(listings_data, aes(y= booking_frequency_percentage)) +
   labs(title= "Boxplot of Booking Frequency (%)", y= "Booking Frequency (%)") +
   theme_minimal()
 ```
-There's a very weak negative correlation between the minimum number of nights a listing can be booked for and its booking frequency percentage. This suggests that as the minimum number of nights increases, the booking frequency percentage slightly decreases. However, the correlation is so weak that it is probably not practically significant.
+
+There's a very weak negative correlation between the minimum number of
+nights a listing can be booked for and its booking frequency percentage.
+This suggests that as the minimum number of nights increases, the
+booking frequency percentage slightly decreases. However, the
+correlation is so weak that it is probably not practically significant.
+
 ```{r}
 correlation_bf_r <- cor(listings_data$minimum_nights, listings_data$booking_frequency_percentage, method= "pearson", use= "complete.obs")
 print(correlation_bf_r)
 ```
 
-.The plot shows a weak negative relationship between booking frequency and price. 
-.Most listings are priced below 400.
-.Listings priced above 400 are concentrated at low booking frequencies (0-12.5%) and at 100%.
+.The plot shows a weak negative relationship between booking frequency
+and price. .Most listings are priced below 400. .Listings priced above
+400 are concentrated at low booking frequencies (0-12.5%) and at 100%.
+
 ```{r}
 #Scatter Plot of Price vs Booking Frequency Percentage
 ggplot(listings_data, aes(x= booking_frequency_percentage, y=price)) +
@@ -1124,8 +1278,11 @@ ggplot(listings_data, aes(x= booking_frequency_percentage, y=price)) +
   labs(title= "Scatter Plot of Price vs Booking Frequency Percentage", x= "Booking Frequency (%)", y= "Price ($)") +
   theme_minimal()
 ```
-Most listings have 1 bed (around 5000), followed by 2 beds (around 3500) and 3 beds (around 2200).
-Listings drop sharply after 4 beds (around 1000) and continue to decrease. Accommodations with many beds are rare.
+
+Most listings have 1 bed (around 5000), followed by 2 beds (around 3500)
+and 3 beds (around 2200). Listings drop sharply after 4 beds (around
+1000) and continue to decrease. Accommodations with many beds are rare.
+
 ```{r}
 #Histogram of Number of Beds
 ggplot(listings_data, aes(x= beds))+
@@ -1133,7 +1290,12 @@ ggplot(listings_data, aes(x= beds))+
   labs(title= "Distribution of Number of Beds", x= "Number of Beds", y= "Number of Listings") +
   theme_minimal()
 ```
-Prices generally rise with the number of beds. A drop is seen at 15 beds and an outlier appear at 15 beds with an average price of close to 800 probably due to low number of listings in this category. Sparse data is observed after except at 23 and 25 both averaging close to 200.
+
+Prices generally rise with the number of beds. A drop is seen at 15 beds
+and an outlier appear at 15 beds with an average price of close to 800
+probably due to low number of listings in this category. Sparse data is
+observed after except at 23 and 25 both averaging close to 200.
+
 ```{r}
 #Grouping by Number of Beds and calculating average price
 avg_price_by_beds <- listings_data %>%
@@ -1146,9 +1308,18 @@ ggplot(avg_price_by_beds, aes(x= beds, y= avg_price)) +
   labs(title= "Average Price by Number of Beds", x= "Number of Beds", y="Average Price ($)") +
   theme_minimal()
 ```
-To simplify our analysis and improve interpretability when it comes to the analysis, we dropped listings with more than 10  beds. This is because we observed a significant drop in the number of listing for properties with ore than 10 beds. Including these could introduce noise and skew our analysis due to the spare data in these categories.
 
-We have also grouped the number of beds into the following categories: 1,2,3,4,5 and 6+. This approach captures the nuances in the lower catrgories while also accounting for the higher categores without letting them skew the analysis.
+To simplify our analysis and improve interpretability when it comes to
+the analysis, we dropped listings with more than 10 beds. This is
+because we observed a significant drop in the number of listing for
+properties with ore than 10 beds. Including these could introduce noise
+and skew our analysis due to the spare data in these categories.
+
+We have also grouped the number of beds into the following categories:
+1,2,3,4,5 and 6+. This approach captures the nuances in the lower
+catrgories while also accounting for the higher categores without
+letting them skew the analysis.
+
 ```{r}
 #Dropping Listings with less than 10 beds
 listings_data <- listings_data %>% filter(beds <= 10)
@@ -1166,7 +1337,9 @@ listings_data$beds_grouped <- case_when(
 
 ```
 
-Looking at the number of NAs within this subset and it turns out it is zero so we can proceed.
+Looking at the number of NAs within this subset and it turns out it is
+zero so we can proceed.
+
 ```{r}
 #Subset of beds less than or equal to 10
 filtered_bed_data <- listings_data %>% filter(beds <= 10)
@@ -1177,9 +1350,16 @@ print(na_count_filtered_bed)
 
 ```
 
-1 bed listings have the highest booking frequency, slightly above 60%.2 to 4 beds listings see a gradual decrease in booking frequency, with each category being slightly lower than the previous. There is a slight uprise in booking frequency in 5 beds higher than 4 but the downward trend continues in 6+ beds listings having the lowest frequency, close to 40%.
+1 bed listings have the highest booking frequency, slightly above 60%.2
+to 4 beds listings see a gradual decrease in booking frequency, with
+each category being slightly lower than the previous. There is a slight
+uprise in booking frequency in 5 beds higher than 4 but the downward
+trend continues in 6+ beds listings having the lowest frequency, close
+to 40%.
 
-This suggests smaller accommodations are more frequently booked, while larger ones, especially 6+ beds, have niche demand.
+This suggests smaller accommodations are more frequently booked, while
+larger ones, especially 6+ beds, have niche demand.
+
 ```{r}
 #Grouping by Number of Beds and calculating average booking frequency
 avg_booking_by_beds <- listings_data %>%
@@ -1193,7 +1373,14 @@ ggplot(avg_booking_by_beds, aes(x= beds_grouped, y= avg_booking_frequency))+
   theme_minimal()
 ```
 
-The boxplot showcases a clear upward trend in median prices as the number of beds increases, starting from close to 100 for single-bed listings to nearly 400 for those with 6+ beds. Notably, single-bed listings exhibit the most outliers in price, which diminishes progressively as we move to higher bed categories. This pattern underscores the potential value in segmenting listings by both price and bed count.
+The boxplot showcases a clear upward trend in median prices as the
+number of beds increases, starting from close to 100 for single-bed
+listings to nearly 400 for those with 6+ beds. Notably, single-bed
+listings exhibit the most outliers in price, which diminishes
+progressively as we move to higher bed categories. This pattern
+underscores the potential value in segmenting listings by both price and
+bed count.
+
 ```{r}
 #Boxplot to look beds (by price)
 ggplot(listings_data, aes(x=factor(beds_grouped), y= price)) +
@@ -1202,7 +1389,20 @@ ggplot(listings_data, aes(x=factor(beds_grouped), y= price)) +
   theme_minimal()
 ```
 
-The distribution of estimated revenues for the listings reveals some interesting insights. At a glance, the data is right-skewed, indicating that a majority of the listings have revenues on the lower end of the spectrum. This skewness is further highlighted by the difference between the mean and median revenues. The mean revenue stands at $40,244, which is significantly higher than the median revenue of $27,048. This discrepancy suggests the presence of high-revenue outliers that are pulling the mean upwards. The density plot provides a visual representation of this distribution. The dashed lines on the plot mark the positions of the mean (in blue) and median (in green), further emphasizing the skewness in the data. By analyzing this distribution, we aim to understand the revenue landscape of the listings and identify potential factors that might influence these earnings.
+The distribution of estimated revenues for the listings reveals some
+interesting insights. At a glance, the data is right-skewed, indicating
+that a majority of the listings have revenues on the lower end of the
+spectrum. This skewness is further highlighted by the difference between
+the mean and median revenues. The mean revenue stands at \$40,244, which
+is significantly higher than the median revenue of \$27,048. This
+discrepancy suggests the presence of high-revenue outliers that are
+pulling the mean upwards. The density plot provides a visual
+representation of this distribution. The dashed lines on the plot mark
+the positions of the mean (in blue) and median (in green), further
+emphasizing the skewness in the data. By analyzing this distribution, we
+aim to understand the revenue landscape of the listings and identify
+potential factors that might influence these earnings.
+
 ```{r}
 library(ggplot2)
 
@@ -1225,9 +1425,16 @@ ggplot(listings_data, aes(x = estimated_revenue)) +
   scale_x_continuous(labels = scales::dollar_format(scale = 1e-3, prefix = "$"), limits = c(0, 130000))  # Setting the upper x-axis limit to $130,000 and formatting labels as dollars
 ```
 
+The histograms reveal a predominantly left-skewed distribution for
+estimated revenue across bed categories. The median revenue exhibits a
+rising trend, peaking for listings with 5 beds. Interestingly, the 6+
+bed category sees a dip, bringing its median revenue closer to that of
+the 3-bed listings. The first three bed categories, in particular, have
+a notable presence of outliers, suggesting a wide range of revenue
+values within these groups. As we consider segmenting listings, these
+patterns emphasize the importance of considering both bed count and
+revenue.
 
-
-The histograms reveal a predominantly left-skewed distribution for estimated revenue across bed categories. The median revenue exhibits a rising trend, peaking for listings with 5 beds. Interestingly, the 6+ bed category sees a dip, bringing its median revenue closer to that of the 3-bed listings. The first three bed categories, in particular, have a notable presence of outliers, suggesting a wide range of revenue values within these groups. As we consider segmenting listings, these patterns emphasize the importance of considering both bed count and revenue.
 ```{r}
 #To avoid scientific notations in Estimated Revenue
 options(scipen = 999)
@@ -1245,7 +1452,15 @@ ggplot(listings_data, aes(x=factor(beds_grouped), y= estimated_revenue)) +
   theme_minimal()
 ```
 
-The correlation analysis highlights the significant impact of minimum nights stayed on estimated revenues. A moderate negative correlation coefficient of -0.12 indicates that increasing the minimum nights requirement is associated with lower estimated revenues. This relationship is statistically significant, emphasizing the importance of setting minimum stay requirements thoughtfully. The provided code includes a scatter plot with a blue linear regression line to visualize this relationship and presents the correlation coefficient and p-value from the Pearson’s correlation test.
+The correlation analysis highlights the significant impact of minimum
+nights stayed on estimated revenues. A moderate negative correlation
+coefficient of -0.12 indicates that increasing the minimum nights
+requirement is associated with lower estimated revenues. This
+relationship is statistically significant, emphasizing the importance of
+setting minimum stay requirements thoughtfully. The provided code
+includes a scatter plot with a blue linear regression line to visualize
+this relationship and presents the correlation coefficient and p-value
+from the Pearson's correlation test.
 
 ```{r}
 
@@ -1271,7 +1486,17 @@ ggplot(listings_data, aes(x=minimum_nights, y=estimated_revenue)) +
        y="Estimated Revenue ($)") +
   scale_y_continuous(labels = dollar_format())  # Format y-axis as dollars
 ```
-The R script visualizes average estimated revenues across Austin's ZIP codes using Airbnb data. By merging revenue data with geographical ZIP code information, the script creates an interactive map with color-coded ZIP codes reflecting their revenue performance. This visualization reveals that, while ZIP code 78712 near the University of Texas stands out for its profitability, many surrounding areas also exhibit strong revenue potential. This finding underscores the opportunity to optimize Airbnb strategies, like adjusting minimum nights, to boost earnings in these neighborhoods.
+
+The R script visualizes average estimated revenues across Austin's ZIP
+codes using Airbnb data. By merging revenue data with geographical ZIP
+code information, the script creates an interactive map with color-coded
+ZIP codes reflecting their revenue performance. This visualization
+reveals that, while ZIP code 78712 near the University of Texas stands
+out for its profitability, many surrounding areas also exhibit strong
+revenue potential. This finding underscores the opportunity to optimize
+Airbnb strategies, like adjusting minimum nights, to boost earnings in
+these neighborhoods.
+
 ```{r}
 # Calculate the average estimated_revenue for each zip code
 avg_revenue_by_zip <- listings_data %>%
@@ -1349,14 +1574,10 @@ if (length(discrepancies) > 0) {
 }
 
 ```
-```
 
-
-######END of EDA #######
+######END of EDA \#######
 
 ###FINAL ANALYSIS####
-
-
 
 # Hypothesis 3
 
@@ -1398,7 +1619,6 @@ austin_H3["n_bedrooms"]<-strtoi(bedrooms_H3)
 #Storing statistics related to the price to filter the data later on the analysis. We want to focus on average listings and discard luxury ones.
 medianprice_austin<- median(austin_H3$price)
 meanprice_austin<- mean(austin_H3$price)
-
 ```
 
 A scatter plot has been used to analyse the relationship between
@@ -1486,7 +1706,7 @@ austin_H3_3
 entire <- austin_H3_2  %>%
   filter(room_type=='Entire home/apt', !is.na(n_bedrooms)) %>% 
   select(n_bedrooms) 
-private <- df2  %>%
+private <- austin_H3_2  %>%
   filter(room_type=='Private room', !is.na(n_bedrooms)) %>% 
   select(n_bedrooms) 
 
@@ -1494,7 +1714,7 @@ private <- df2  %>%
  
  
 #Make the plot
-hist(data.matrix(entire) , main="Distribution of number of bedrooms for entire apartment listings" , xlim=c(1,5), ylab="Density of Entire home/apt", xlab="Number of bedrooms per listing", ylim=c(0,0.9) , las=1 , col="salmon", breaks=10, density = 10, # Shading lines
+hist(data.matrix(entire) , main="Distribution of number of bedrooms for entire apartment listings" , xlim=c(1,5), ylab="Density of Entire home/apt", xlab="Number of bedrooms per listing", ylim=c(0,0.9) , las=1 , col=airbnb_color1, breaks=10, density = 10, # Shading lines
      angle = 20, labels=TRUE, freq=FALSE )
 ```
 
@@ -1506,16 +1726,22 @@ mean_price_private<-round(austin_H3_3[2,4],2)
 
 Rev_Entire<- austin_H3_2  %>%
   filter(room_type=='Entire home/apt', !is.na(n_bedrooms), n_bedrooms>1) %>% 
-  select(room_type,n_bedrooms, price,number_nights_rented )
+  select(room_type,n_bedrooms, price,number_nights_rented, future_earnings )
 
 Rev_Entire['price_per_room']<-round(Rev_Entire$price/Rev_Entire$n_bedrooms,1)
 Rev_Entire['mean_nights_private']<-mean_nights_private
 Rev_Entire['mean_price_private']<-mean_price_private
+Rev_Entire['earnings_private']<-round(Rev_Entire$mean_price_private*Rev_Entire$n_bedrooms*Rev_Entire$number_nights_rented,2)
+Rev_Entire['diff_revenue']<-round(((Rev_Entire$earnings_private-Rev_Entire$future_earnings)/Rev_Entire$future_earnings)*100,2)
 
-m<-mean(Rev_Entire$price_per_room)
 #Selecting entire apt listings that are charging less per night per room than the mean private listings price and entire listings that have a number of nights rented less than the mean rented nights of private rooms.
 Rev_Entire<-Rev_Entire %>%
-  filter(number_nights_rented<mean_nights_private, price_per_room<mean_price_private)
+  filter(earnings_private>future_earnings)%>%
+  group_by(n_bedrooms) %>%
+  summarize(mean_diff=round(mean(diff_revenue),2))
 
 Rev_Entire
+
+
+
 ```
