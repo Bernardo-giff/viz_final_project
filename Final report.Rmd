@@ -515,7 +515,7 @@ for 1 bedroom apartments are much higher in NYC and SF than in Austin.
 
 Now we need to connect that to the expected revenues from Airbnb
 listings. For that, we store the the median rent prices for one bedroom
-appartments in separate variables, and compare them row by row with the
+apartments in separate variables, and compare them row by row with the
 expected monthly revenue of the airbnb listings. We define the revenue
 p.a. as:
 
@@ -1673,7 +1673,9 @@ plt
 Even though, occupancy rate is higher in private room listings, entire
 home/apt enjoy higher earnings on average because the price per night is
 higher. However, entire apartments that have more than 1 room could
-offer their listings as private room to increase occupancy rates and increase their revenue as a whole.Around 30% of the Entire Apt listings offered in Austin have more than 1 room, and thus we could use that data points to understand the revenue increase that a host could experience if they offered their listings as private room rentals.
+offer their listings as private room to increase occupancy rates and increase their revenue as a whole.
+
+Around 30% of the Entire Apt listings offered in Austin have more than 1 room, and thus we could use that data points to understand the potential revenue increase that a host could experience if they offered their listings as private room rentals.
 
 ```{r}
 austin_H3_3<- austin_H3_2 %>% 
@@ -1699,6 +1701,8 @@ hist(data.matrix(entire) , main="Distribution of number of bedrooms for entire a
      angle = 20, labels=TRUE, freq=FALSE )
 ```
 
+
+
 ```{r}
 #Storing mean value of private rooms to calculate possible additional revenue if entire apartments where rented as private rooms
 
@@ -1715,7 +1719,7 @@ Rev_Entire['mean_price_private']<-mean_price_private
 Rev_Entire['earnings_private']<-round(Rev_Entire$mean_price_private*Rev_Entire$n_bedrooms*Rev_Entire$number_nights_rented,2)
 Rev_Entire['diff_revenue']<-round(((Rev_Entire$earnings_private-Rev_Entire$future_earnings)/Rev_Entire$future_earnings)*100,2)
 
-#Selecting entire apt listings that are charging less per night per room than the mean private listings price and entire listings that have a number of nights rented less than the mean rented nights of private rooms.
+#Selecting entire apt listings that are earning less as entire apartments listings than they would if they offer their listing as a private room.
 Rev_Entire<-Rev_Entire %>%
   filter(earnings_private>future_earnings, n_bedrooms<7)%>%
   group_by(n_bedrooms) %>%
@@ -1726,6 +1730,8 @@ Rev_Entire
 
 
 ```
+
+It can be seen from the graph that entire apartments that have 2 or more bedroom can benefit from listings it as a private room.
 
 ```{r}
 # Create data
