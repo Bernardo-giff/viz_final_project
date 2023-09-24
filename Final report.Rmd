@@ -279,7 +279,7 @@ listings_filtered <- listings %>%
 
 ggplot(data=listings_filtered, aes(x= reorder(property_type, +n_properties), y=n_properties, fill=airbnb_color1))+
   geom_bar(stat="identity")+
-  geom_label(aes(label = n_properties, label.bg='white'))+
+  geom_label(aes(label = n_properties, fill='white'))+
   scale_fill_identity() +  # Use the specified fill color + 
   theme(legend.position = "none",  # Remove the legend
         panel.grid = element_blank()) +  # Remove grid lines
@@ -580,6 +580,46 @@ ggplot(filtered_listings,
   scale_y_continuous(labels = scales::percent_format(scale = 100)) + 
   scale_fill_manual(values = city_colors)
 
+```
+
+```{r}
+
+filtered_listings <- listings %>%
+  filter(bedrooms == 1, price_night_median_rent <= 3)
+
+ggplot(filtered_listings, aes(x = price_night_median_rent, fill = airbnb_color1)) +
+  geom_density(alpha = 0.5) +  # Use geom_density for KDE
+  labs(title = "KDE of ROI %",
+       x = "Price per Night / Median Rent",
+       y = NULL) +  # Remove y-axis label
+  theme_minimal() +
+  theme(panel.grid.major = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none",
+        panel.grid = element_blank(),
+        plot.background = element_rect(fill = background_color)) +  # Remove legend
+  scale_x_continuous(labels = scales::percent_format(scale = 100))+
+  scale_y_continuous(labels = scales::percent_format(scale = 100))
+```
+
+```{r}
+filtered_listings <- listings %>%
+  filter(bedrooms == 1, price_night_median_rent <= 3, availability_365<180)
+  
+
+ggplot(filtered_listings, aes(x = price_night_median_rent, fill = airbnb_color1)) +
+  geom_density(alpha = 0.5) +  # Use geom_density for KDE
+  labs(title = "KDE of ROI % with more than 180 taken",
+       x = "Price per Night / Median Rent",
+       y = NULL) +  # Remove y-axis label
+  theme_minimal() +
+  theme(panel.grid.major = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none",
+        panel.grid = element_blank(),
+        plot.background = element_rect(fill = background_color)) +  # Remove legend
+  scale_x_continuous(labels = scales::percent_format(scale = 100))+
+  scale_y_continuous(labels = scales::percent_format(scale = 100))
 ```
 
 Without any major filters applied, we see that the distribution is quite
