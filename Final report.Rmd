@@ -94,7 +94,7 @@ The idea is to show that the present ROI in Austin make sense. This can
 generate valuable insight to investors becomes several studies point to
 the continuation of the growth of Texas, with Austin leading the pack.
 
-# Initial EDA
+### Data preparation and initial analysis
 
 We will focus at first on the listings data. We will be comparing 3
 cities: NYC, SF and Austin. We need to coerce the neighbourhood cleansed
@@ -203,8 +203,8 @@ ggplot(listings, aes(x = city, y = price)) +
 
 ```
 
-We cannott really get good insights from the boxplots as they are because
-of the outliers. We will remove them to get a better look
+We cannott really get good insights from the boxplots as they are
+because of the outliers. We will remove them to get a better look
 
 ```{r}
 
@@ -225,10 +225,10 @@ ggplot(listings, aes(x = city, y = price, fill = city_color)) +
 
 ```
 
-We cannott really see a lot of difference between the distributions of the
-cities. This is surprising, since both New York city and San Francisco
-are known for their high prices. This might be do to the distribution of
-property types
+We cannott really see a lot of difference between the distributions of
+the cities. This is surprising, since both New York city and San
+Francisco are known for their high prices. This might be do to the
+distribution of property types
 
 ```{r}
 # Calculate counts per property type
@@ -262,8 +262,8 @@ ggplot(data = property_type_counts, aes(x = reorder(property_type, -count), y = 
 ```
 
 We see that the number of listings is highly concentrated in a couple of
-types. Therefore, we will take the top 10 properties, which accounts
-for over 90% of the data
+types. Therefore, we will take the top 10 properties, which accounts for
+over 90% of the data
 
 ```{r}
 listings_filtered <- listings %>%
@@ -438,7 +438,7 @@ print(p)
 
 ```
 
-## Rent differences
+### Rent differences
 
 Now we need to compare the data we repared with the regular rent data so
 that we can estimate the ROI of Airbnb's in comparison to regular
@@ -671,37 +671,25 @@ have a better ROI than regular renting past a certain threshold of
 nights. Furthermore, we see that that threshold and the overall
 potential of return for Austin is far superior than those of NYC and SF.
 
-# Hypothesis 2
+## Price behaviour in Austin - H2
 
-Hosts could maximize their revenues if they knew the optimal minimum nights. We aim to identify this optimal
-number by examining the relationship between minimum nights, price and
-booking frequency. Our goal is to provide valuable insights for
-potential Airbnb investors by uncovering the most lucrative strategy for
-setting minimum night requirements, considering additional factors like
-bed count for example.
+Hosts could maximize their revenues if they knew the optimal minimum
+nights. We aim to identify this optimal number by examining the
+relationship between minimum nights, price and booking frequency. Our
+goal is to provide valuable insights for potential Airbnb investors by
+uncovering the most lucrative strategy for setting minimum night
+requirements, considering additional factors like bed count for example.
 
-Assumptions: - Given the Airbnb data, there is no way to distinguish
-between rentals that have been blocked by the host or haven been rented,
-for simplicity we will assume that rentals that are not available, have
-been rented by users.
+There is no way to distinguish between rentals that have been blocked by
+the host or haven been rented, for simplicity we will assume that
+rentals that are not available, have been rented by users.
 
-#Start of EDA
-
-Before diving into our analysis, it's essential to set up our
-environment. We start by installing and loading the necessary packages
-for our Exploratory Data Analysis (EDA). Our analysis will be based on
-three datasets: listings_data, calendar data, and reviews_data. These
-datasets provide comprehensive information about the listings, their
-availability throughout the year and the reviews they've received.
+Our analysis will be based on three datasets: listings_data, calendar
+data, and reviews_data. These datasets provide comprehensive information
+about the listings, their availability throughout the year and the
+reviews they've received.
 
 ```{r}
-# Installing some packages needed for EDA
-#install.packages(c("dplyr", "ggplot2", "tidyr"))
-#rm(list=ls())
-library(dplyr)
-library(ggplot2)
-library(tidyr)
-
 # Reading the Data
 listings_data <- read.csv("./data/listings/listings_austin.csv")
 calendar_data <- read.csv("./data/calendar/calendar_austin.csv")
@@ -867,6 +855,7 @@ on.
 
 ```{r}
 #Price
+
 boxplot(listings_data$price, main="Boxplot of Prices", ylab="Price")
 #to get a clearer picture, limiting it to 5000
 boxplot(listings_data$price, ylim=c(0,5000), main="Boxplot of Prices", ylab="Price")
@@ -947,15 +936,20 @@ prices by minimum nights.
 ```{r}
 #Distribution of Prices
 ggplot(listings_data, aes(x=price)) + 
-  geom_histogram(binwidth = 10, fill= "blue", color="black", alpha= 0.7) + 
-  labs(title= "Distribution of Prices for Lisitings in Austin", x="Price", y= "Number of Listings") +
-  theme_minimal()
+  geom_histogram(binwidth = 10, fill= airbnb_color1, color="black", alpha= 0.7) + 
+  labs(title= "Distribution of Prices for Lisitings in Austin", x="Price", y= "Number of listings") +
+  theme_minimal() + 
+  scale_x_continuous(labels = scales::dollar_format()) +
+  theme(panel.grid = element_blank())
 
 #Boxplot for Prices
 ggplot(listings_data, aes(y=price)) +
-  geom_boxplot(fill= "blue", color= "black", alpha=0.7) +
-  labs(title = "Boxplot of Prices for Listings in Asutin", y="Price") +
-  theme_minimal()
+  geom_boxplot(fill= airbnb_color1, color= "black", alpha=0.7) +
+  labs(title = "Boxplot of Prices for Listings in Austin", y="Price") +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  theme_minimal() + 
+  theme(panel.grid = element_blank(),
+        axis.text.x = element_blank())
   
 ```
 
@@ -985,12 +979,12 @@ ggplot(listings_data, aes(x=price, fill= as.factor(minimum_nights)))+
 The boxplot provides insights into the distribution of listing prices
 based on the minimum number of nights required for booking.
 
-Median price for a single night is around 120. . Prices vary widely
-for 1-4 night stays, with many outliers. . 5-6 night stays show a
-reduced price range, with a slight rise at 7 nights. . 9-night stays
-resemble 4-night stays in terms of price distribution. . Beyond 10
-nights, for the most part, prices stabilize with most listings priced
-between 100 and 200.
+Median price for a single night is around 120. . Prices vary widely for
+1-4 night stays, with many outliers. . 5-6 night stays show a reduced
+price range, with a slight rise at 7 nights. . 9-night stays resemble
+4-night stays in terms of price distribution. . Beyond 10 nights, for
+the most part, prices stabilize with most listings priced between 100
+and 200.
 
 ```{r}
 # Another plot of Dstribution of Prices by Minimum Nights
@@ -998,6 +992,8 @@ ggplot(listings_data, aes(x= as.factor(minimum_nights), y=price, fill= as.factor
   geom_boxplot() +
   labs(title= "Distribution of Prices by Minimum Nights", x="Minimum Nights", y= "Price ($)")+
   theme_minimal() +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  theme(panel.grid = element_blank()) + 
   theme(legend.position = "none")
 ```
 
@@ -1016,8 +1012,10 @@ bookings, with a few accommodating longer stays.
 ```{r}
 # Number of Listings by Minimum Nights Plot
 ggplot(listings_data, aes(x=as.factor(minimum_nights))) +
-  geom_bar(fill= "steelblue") +
+  geom_bar(fill= airbnb_color1) +
   labs(title = "Number of Listings by Minimum Nights", x="Minimum Nights", y= "Number of Listings") +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  theme(panel.grid = element_blank()) +
   theme_minimal()
 
 ```
@@ -1532,7 +1530,7 @@ if (length(discrepancies) > 0) {
   sf_data <- st_as_sf(merged_data, wkt = "the_geom")
 
   # Create a custom color palette for mapping (blue for low revenue, red for high revenue)
-  color_palette <- colorRampPalette(c("blue", "red"))(10)
+  color_palette <- colorRampPalette(c(airbnb_color1, airbnb_color2))(10)
   pal <- colorNumeric(palette = color_palette, domain = sf_data$avg_revenue)
 
   # 4. Visualize the Average Estimated Revenue on a Map
@@ -1556,10 +1554,6 @@ if (length(discrepancies) > 0) {
 }
 
 ```
-
-######END of EDA \#######
-
-###FINAL ANALYSIS####
 
 # Hypothesis 3
 
@@ -1611,8 +1605,9 @@ which are listings that have a very large price, we want to focus on
 average listings, not in luxury ones. Furthermore, the density graph in
 the y-axis helps to determine where are the majority of listings
 concentrated in, we are choosing listings that have a price lower than
-USD350 per night and above USD50 per night. Finally, we have decided to exclude Hotel Rooms (n=6)
-and shared room (n=98) because they have very few listings.
+USD350 per night and above USD50 per night. Finally, we have decided to
+exclude Hotel Rooms (n=6) and shared room (n=98) because they have very
+few listings.
 
 ```{r}
 
@@ -1644,17 +1639,18 @@ When we examine the distribution of occupancy rate across the two room
 types in analysis, we can observe that in Austin there are 4 times more
 Entire home/apt listings than private rooms, this can be considered as a
 limitation for our analysis but could also represent a huge opportunity
-for investors or current hosts. 
+for investors or current hosts.
 
-It can be seen that private rooms experience a higher occupancy rates than entire home/apt. The majority
-of the data of the data for private rooms is distributed along 60-100%
-of occupancy rates, while entire home/apt is distributed along the mean
-(53.81%). It can be seen that our Hypothesis 3 was not correct, the type
-of listings that enjoy higher occupancy rates are the ones that are
-offered as private rooms rather than Entire apartments. This insights
-could be transformed into opportunity for investors interested in
-renting apartments in Austin through Airbnb. Let's explore how higher
-occupancy rates are related to revenue.
+It can be seen that private rooms experience a higher occupancy rates
+than entire home/apt. The majority of the data of the data for private
+rooms is distributed along 60-100% of occupancy rates, while entire
+home/apt is distributed along the mean (53.81%). It can be seen that our
+Hypothesis 3 was not correct, the type of listings that enjoy higher
+occupancy rates are the ones that are offered as private rooms rather
+than Entire apartments. This insights could be transformed into
+opportunity for investors interested in renting apartments in Austin
+through Airbnb. Let's explore how higher occupancy rates are related to
+revenue.
 
 ```{r}
 plt <- ggbetweenstats(
@@ -1673,9 +1669,13 @@ plt
 Even though, occupancy rate is higher in private room listings, entire
 home/apt enjoy higher earnings on average because the price per night is
 higher. However, entire apartments that have more than 1 room could
-offer their listings as private room to increase occupancy rates and increase their revenue as a whole.
+offer their listings as private room to increase occupancy rates and
+increase their revenue as a whole.
 
-Around 30% of the Entire Apt listings offered in Austin have more than 1 room, and thus we could use that data points to understand the potential revenue increase that a host could experience if they offered their listings as private room rentals.
+Around 30% of the Entire Apt listings offered in Austin have more than 1
+room, and thus we could use that data points to understand the potential
+revenue increase that a host could experience if they offered their
+listings as private room rentals.
 
 ```{r}
 austin_H3_3<- austin_H3_2 %>% 
@@ -1684,7 +1684,6 @@ austin_H3_3<- austin_H3_2 %>%
 
 austin_H3_3
 ```
-
 
 ```{r}
 #Create Data
@@ -1700,8 +1699,6 @@ private <- austin_H3_2  %>%
 hist(data.matrix(entire) , main="Distribution of number of bedrooms for entire apartment listings" , xlim=c(1,5), ylab="Density of Entire home/apt", xlab="Number of bedrooms per listing", ylim=c(0,0.9) , las=1 , col=airbnb_color1, breaks=10, density = 10, # Shading lines
      angle = 20, labels=TRUE, freq=FALSE )
 ```
-
-
 
 ```{r}
 #Storing mean value of private rooms to calculate possible additional revenue if entire apartments where rented as private rooms
@@ -1731,7 +1728,8 @@ Rev_Entire
 
 ```
 
-It can be seen from the graph that entire apartments that have 2 or more bedroom can benefit from listings it as a private room.
+It can be seen from the graph that entire apartments that have 2 or more
+bedroom can benefit from listings it as a private room.
 
 ```{r}
 # Create data
@@ -1767,4 +1765,3 @@ p3_H3 <- ggplot(data, aes(x=x, y=y)) +
 
 p3_H3
 ```
-
