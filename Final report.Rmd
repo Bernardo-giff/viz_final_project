@@ -1736,7 +1736,7 @@ Rev_Entire['diff_revenue']<-round(((Rev_Entire$earnings_private-Rev_Entire$futur
 
 #Selecting entire apt listings that are charging less per night per room than the mean private listings price and entire listings that have a number of nights rented less than the mean rented nights of private rooms.
 Rev_Entire<-Rev_Entire %>%
-  filter(earnings_private>future_earnings)%>%
+  filter(earnings_private>future_earnings, n_bedrooms<7)%>%
   group_by(n_bedrooms) %>%
   summarize(mean_diff=round(mean(diff_revenue),2))
 
@@ -1748,7 +1748,7 @@ Rev_Entire
 
 ```{r}
 # Create data
-set.seed(1000)
+set.seed(2500)
 data <- data.frame(
   x=Rev_Entire$n_bedrooms, 
   y=Rev_Entire$mean_diff)
@@ -1763,19 +1763,20 @@ p3_H3 <- ggplot(data, aes(x=x, y=y)) +
   geom_segment(
     aes(x=x, xend=x, y=0, yend=y), 
     color=airbnb_color1, 
-    size=1.3
+    size=1.3,
   ) +
   geom_point(
     color=airbnb_color2, 
-    size=3
+    size=3,
+    labels=TRUE
   ) +
   coord_flip() +
   theme(
     legend.position="none"
   ) +
-  xlab("") +
-  ylab("Value of Y") +
-  ggtitle("How did groups A and D perform?")
+  xlab("Number of Bedrooms for Entire Apt") +
+  ylab("% increase in revenue") +
+  ggtitle("Avg % increase in revenue for Entire Apt that offer their listings as Private Rooms")
 
 p3_H3
 ```
