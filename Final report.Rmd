@@ -13,8 +13,8 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 
 
-#install.packages("ggstatsplot")
-#install.packages("kableExtra")
+install.packages("ggstatsplot")
+install.packages("kableExtra")
 
 rm(list=ls())
 
@@ -1554,6 +1554,221 @@ if (length(discrepancies) > 0) {
   leaflet_map
 }
 
+```
+
+
+###Start of Analysis####
+
+The results below indicate that listings with a shorter minimum nights requirement (1-7 nights) tend to generate higher revenue on average compared to those with a longer minimum nights requirement (8+ nights). This could be attributed to several factors, including higher demand for short-term stays, flexibility for travelers, and potentially higher nightly rates for short-term listings.
+
+For hosts aiming to maximise their revenue, it might be beneficial to consider setting their minimum nights requirement within the 1-7 nights range. However, other factors such as location, amenities and guest preferences should also be taken into account when making this decision.
+
+```{r}
+# Categorise the Minimum Nights 
+listings_data$min_nights_category <- ifelse(listings_data$minimum_nights <= 7, "1-7 Nights", "8+ Nights")
+
+# Group by Minimum Nights Category
+grouped_data <- listings_data %>%
+  group_by(min_nights_category) %>%
+  summarise(total_revenue= sum(estimated_revenue), total_listings= n())
+
+# Computing weighted average revenue
+grouped_data$weighted_avg_revenue <- grouped_data$total_revenue/ grouped_data$total_listings
+
+#Plot
+ggplot(grouped_data, aes(x= min_nights_category, y= weighted_avg_revenue, fill= min_nights_category)) +
+  geom_bar(stat="identity") +
+  labs(title= "Weighted Average Revenue by Minimum Nights Category", x="Minimum Nights Category", y= "Weighted Average Revenue ($)") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+We segmented the listings in our dataframe based on the number of beds, categorizing them into groups such as "1", "2", "3", "4", "5", and "6+". For each bed category, we further segmented the listings into pricing quartiles, classifying them as "Budget", "Mid-Range", "Premium", and "Luxury". Based on this segmentation, we make the assumption that then "Luxury" listings, irrespective of bed count, are situated in prime locations, offer superior amenities, and have consistently positive reviews. The price point is indicative of the premium offerings these listings provide. Conversely, the "Budget", "Mid-Range", and "'Premium" listings offer amenities and experiences that align with their respective price points. While this assumption provides a foundational guideline for our analysis, individual listings may have characteristics that deviate from these general categorizations.
+
+```{r}
+#Function to categorize listings based on quartiles within each bed category 
+categorize_price <- function(df) {
+  quantiles <- quantile(df$price, probs= c(0.25, 0.5, 0.75))
+  df$price_category <- case_when(
+    df$price <= quantiles[1] ~ "Budget",
+    df$price > quantiles[1] & df$price <= quantiles[2] ~ "Mid-Range",
+    df$price > quantiles[2] & df$price <= quantiles[3] ~ "Premium",
+    df$price > quantiles[3] ~ "Luxury"
+  )
+  return(df)
+}
+
+#Apply function to each bed category
+listings_data <- listings_data %>%
+  group_by(beds_grouped) %>%
+  group_modify(~ categorize_price(.))
+
+head(listings_data)
+
+```
+
+The consistency in the results across all pricing categories reinforces our earlier observation that listings with a shorter minimum nights requirement tend to generate higher revenue.
+
+This trend holds true even when accounting for different pricing segments, suggesting that the minimum nights requirement plays a significant role in influencing revenue, regardless of the listing's price point.
+
+Hosts across all pricing categories might consider setting their minimum nights requirement within the 1-7 nights range to potentially maximise their revenue. We will dive deeper into the data.
+
+```{r}
+# Organising Pricing Category
+listings_data$price_category <- factor(listings_data$price_category, levels = c("Budget", "Mid-Range", "Premium", "Luxury"))
+# Categorize the Minimum Nights 
+listings_data$min_nights_category <- ifelse(listings_data$minimum_nights <= 7, "1-7 Nights", "8+ Nights")
+
+# Group by Minimum Nights Category
+grouped_data <- listings_data %>%
+  group_by(min_nights_category, price_category) %>%
+  summarise(total_revenue= sum(estimated_revenue), total_listings= n()) %>%
+  mutate(weighted_avg_revenue = total_revenue/total_listings)
+
+# Computing weighted average revenue
+grouped_data$weighted_avg_revenue <- grouped_data$total_revenue/ grouped_data$total_listings
+
+#Plot
+ggplot(grouped_data, aes(x= min_nights_category, y= weighted_avg_revenue, fill= price_category)) +
+  geom_bar(stat="identity", position = "dodge") +
+  labs(title= "Weighted Average Revenue by Minimum Nights and Price Category", x="Minimum Nights Category", y= "Weighted Average Revenue ($)") +
+  theme_minimal() +
+  scale_fill_brewer(palette= "Set2")
+  theme(axis.text.x = element_text(angle= 45, hjust= 1))
+```
+The higher standard deviation in the Luxury category than the other categories indicates that our analysis for this segment might be less robust compared to the other segments.
+```{r}
+#Distribution of Price by Number of Beds and Pricing Categories
+price_stats_by_beds_and_category <- listings_data %>%
+  group_by(beds_grouped, price_category) %>%
+  summarise(
+    mean_price = mean(price),
+    median_price = median(price),
+    sd_price= sd(price),
+    count= n()
+  )
+
+print(price_stats_by_beds_and_category)
+```
+
+Given the skewed distribution of our data, with a higher proportion of Premium and Luxury listings in the 1-7 nights category, it's essential to approach our analysis with caution. We cannot solely rely on the aggregated insights from the 1-7 nights category. Instead, it's crucial to delve deeper and examine the revenue metrics for each individual minimum night within this category to draw more accurate conclusions.
+
+```{r}
+# The number of listings in each category combination
+listings_count <- listings_data %>%
+  group_by(min_nights_category, price_category) %>%
+  summarise(count= n())
+print(listings_count)
+
+# The proportions of listings in each category combination
+listings_proportions <- listings_data %>%
+  group_by(min_nights_category) %>%
+  count(price_category) %>%
+  mutate(proportion= (n/sum(n)*100))
+
+print(listings_proportions)
+```
+
+```{r}
+booking_frequency_summary <- listings_data %>%
+  group_by(price_category) %>%
+  summarise(
+    mean_booking_frequency = mean(booking_frequency_percentage),
+    median_booking_frequency= median(booking_frequency_percentage),
+    sd_booking_frequency = sd(booking_frequency_percentage),
+    count= n()
+  )
+
+print(booking_frequency_summary)
+
+#Plotting the booking frequency for each pricing category
+ggplot(listings_data, aes(x= price_category, y= booking_frequency_percentage, fill= price_category)) +
+  geom_boxplot() +
+  labs(title= "Distribution of Booking Frequency by Pricing Category", x= "Pricing Category", y= "Booking Frequency %") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+The standard deviation in booking frequency is high most likely due to the forward looking nature of the data.
+
+```{r}
+booking_frequency_by_min_nights <- listings_data %>%
+  group_by(min_nights_category,price_category) %>%
+  summarise(
+    mean_booking_frequency = mean(booking_frequency_percentage),
+    median_booking_frequency= median(booking_frequency_percentage),
+    sd_booking_frequency = sd(booking_frequency_percentage),
+    count= n()
+  )
+
+print(booking_frequency_by_min_nights)
+
+#Plotting the booking frequency for each pricing category
+ggplot(listings_data, aes(x= min_nights_category, y= booking_frequency_percentage, fill= price_category)) +
+  geom_boxplot() +
+  labs(title= "Distribution of Booking Frequency by Pricing Category", x= "Pricing Category", y= "Booking Frequency %", fill= "Price Category") +
+  theme_minimal() +
+  theme(axis.text.x= element_text(angle= 45, hjust = 1))
+```
+
+```{r}
+#Filter the data for 1-7 Minimum Nights
+filered_min_night_data <- listings_data %>% filter(minimum_nights <= 30)
+
+#Group by Price Category and Minimum Nights and calculate weighted average
+optimal_nights_data <- filered_min_night_data %>%
+  group_by(price_category, minimum_nights) %>%
+  summarise(weighted_avg_revenue= sum(price* booking_frequency)/ n())
+
+#Plotting Weighted Average Revenue for each Minimum Night by Price Category
+ggplot(optimal_nights_data, aes(x= as.factor(minimum_nights), y= weighted_avg_revenue, color= price_category, group= price_category)) +
+  geom_line(size=1) +
+  geom_point(size=3) +
+  labs(title= "Weighted Average Revenue by Minimum Nights and Price Category", x= "Minimum Nights", y= "Weighted Average Revenue ($)", color= "Price Category")+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle= 45, hjust = 1))
+```
+
+However, it is inaccurate to say that the optimal minimum night for luxury is 9. Because there is only one luxury listing at 54,000. 
+
+```{r}
+#Filter for Luxury Listings with minimum nights of 9
+luxury_min_night_9 <- filtered_min_night_data %>%
+  filter(price_category == "Luxury", minimum_nights == 9) %>%
+  summarise(
+    number_of_listings= n(),
+    weighted_avg_revenue = sum(price* booking_frequency)/ n()
+  )
+print(luxury_min_night_9)
+```
+Given that the majority of our listings are concentrated within the 1-7 minimum nights range, we believe that focusing our analysis on this segment will provide the most representative and actionable insights. Analyzing this segment allows us to make data-driven decisions based on where most of our business activity occurs. While we acknowledge the presence of listings outside this range, their relatively smaller proportion might introduce variability that could skew our overall understanding. Therefore, our primary analysis will center on the 1-7 nights range, ensuring that our insights and recommendations are grounded in the most prevalent segment of our data.
+
+```{r}
+#Histogram of Number of Beds
+ggplot(listings_data, aes(x= minimum_nights))+
+  geom_histogram(binwidth = 1, fill= "skyblue", color= "black") +
+  labs(title= "Distribution of Minimum Nights", x= "Minimum Nights", y= "Number of Listings") +
+  theme_minimal()
+```
+
+We find that the optimal minimum night for price category of luxury and premium is 4 (in terms of maximising revenue). For Mid-Range, it is 5 and for budget, it is 3. 
+
+```{r}
+#Filter the data for 1-7 Minimum Nights
+filered_min_night_data <- listings_data %>% filter(minimum_nights <= 7)
+
+#Group by Price Category and Minimum Nights and calculate weighted average
+optimal_nights_data <- filered_min_night_data %>%
+  group_by(price_category, minimum_nights) %>%
+  summarise(weighted_avg_revenue= sum(price* booking_frequency)/ n())
+
+#Plotting Weighted Average Revenue for each Minimum Night by Price Category
+ggplot(optimal_nights_data, aes(x= as.factor(minimum_nights), y= weighted_avg_revenue, color= price_category, group= price_category)) +
+  geom_line(size=1) +
+  geom_point(size=3) +
+  labs(title= "Weighted Average Revenue by Minimum Nights and Price Category", x= "Minimum Nights", y= "Weighted Average Revenue ($)", color= "Price Category")+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle= 45, hjust = 1))
 ```
 
 # Hypothesis 3
