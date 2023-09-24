@@ -203,7 +203,7 @@ ggplot(listings, aes(x = city, y = price)) +
 
 ```
 
-We can't really get good insights from the boxplots as they are because
+We cannott really get good insights from the boxplots as they are because
 of the outliers. We will remove them to get a better look
 
 ```{r}
@@ -225,7 +225,7 @@ ggplot(listings, aes(x = city, y = price, fill = city_color)) +
 
 ```
 
-We can't really see a lot of difference between the distributions of the
+We cannott really see a lot of difference between the distributions of the
 cities. This is surprising, since both New York city and San Francisco
 are known for their high prices. This might be do to the distribution of
 property types
@@ -262,7 +262,7 @@ ggplot(data = property_type_counts, aes(x = reorder(property_type, -count), y = 
 ```
 
 We see that the number of listings is highly concentrated in a couple of
-types. Therefore, we wiull take the top 10 properties, which accounts
+types. Therefore, we will take the top 10 properties, which accounts
 for over 90% of the data
 
 ```{r}
@@ -577,7 +577,7 @@ ggplot(filtered_listings,
 
 ```
 
-WIthout any major filters applied, we see that the distribution is quite
+Without any major filters applied, we see that the distribution is quite
 inconclusive about the ROI of Airbnb's over the rent prices.
 
 We will apply a minimal filter for the availability column. Our
@@ -673,23 +673,7 @@ potential of return for Austin is far superior than those of NYC and SF.
 
 # Hypothesis 2
 
-We hypothesise that an optimal number of minimum nights exists for
-maximising Airbnb listing revenue. We aim to identify this optimal
-number by examining the relationship between minimum nights, price and
-booking frequency. Our goal is to provide valuable insights for
-potential Airbnb investors by uncovering the most lucrative strategy for
-setting minimum night requirements, considering additional factors like
-bed count for example.
-
-Assumptions: - Given the Airbnb data, there is no way to distinguish
-between rentals that have been blocked by the host or haven been rented,
-for simplicity we will assume that rentals that are not available, have
-been rented by users.
-
-#Start of EDA \# Hypothesis 2
-
-We hypothesize that an optimal number of minimum nights exists for
-maximising Airbnb listing revenue. We aim to identify this optimal
+Hosts could maximize their revenues if they knew the optimal minimum nights. We aim to identify this optimal
 number by examining the relationship between minimum nights, price and
 booking frequency. Our goal is to provide valuable insights for
 potential Airbnb investors by uncovering the most lucrative strategy for
@@ -935,7 +919,7 @@ boxplot(listings_data$availability_365, main="Boxplot of Availability 365", ylab
 boxplot(listings_data$review_scores_rating, main="Boxplot of Review Score Rating", ylab="Review Score Rating")
 ```
 
-.To better understand the dynamics of our listings, we've derived three
+To better understand the dynamics of our listings, we've derived three
 new metrics: 1. Booking Frequency: Calculated as the difference between
 a full year (365 days) and the number of days a listing is available. 2.
 Booking Frequency Percentage: Represents the proportion of the year a
@@ -954,8 +938,6 @@ listings_data$booking_frequency_percentage <- round(((365 - listings_data$availa
 #Creating Revenue
 listings_data$estimated_revenue <- listings_data$price * listings_data$booking_frequency
 ```
-
-\_Start of Main EDA
 
 As you can see below, the distribution of prices for listings is
 left-skewed, meaning majority of listings are priced on the lower end
@@ -1003,7 +985,7 @@ ggplot(listings_data, aes(x=price, fill= as.factor(minimum_nights)))+
 The boxplot provides insights into the distribution of listing prices
 based on the minimum number of nights required for booking.
 
-. Median price for a single night is around 120. . Prices vary widely
+Median price for a single night is around 120. . Prices vary widely
 for 1-4 night stays, with many outliers. . 5-6 night stays show a
 reduced price range, with a slight rise at 7 nights. . 9-night stays
 resemble 4-night stays in terms of price distribution. . Beyond 10
@@ -1019,12 +1001,12 @@ ggplot(listings_data, aes(x= as.factor(minimum_nights), y=price, fill= as.factor
   theme(legend.position = "none")
 ```
 
-The bar chart visualises the distribution of Airbnb listings based on
+The bar chart visualizes the distribution of Airbnb listings based on
 the minimum number of nights required for booking.
 
-.A significant majority of listings prefer short stays, with 1 and
-2-night minmum stays each having just over 4000 listings. .3-night
-minimumstays are also popular, nearing 1500 listings. .There's a sharp
+A significant majority of listings prefer short stays, with 1 and
+2-night minimum stays each having just over 4000 listings. .3-night
+minimum stays are also popular, nearing 1500 listings. .There's a sharp
 decline in listings from 4 to 7 nights. .Beyond 7 nights, listings are
 sparse, with a slight resurgence at 30 nights.
 
@@ -1043,7 +1025,7 @@ ggplot(listings_data, aes(x=as.factor(minimum_nights))) +
 The following bar chart represents the weighted average price of Airbnb
 listings based on the minimum number of nights required for booking.
 
-.The weighted average price increases from nights 1 to 4, peaking at
+The weighted average price increases from nights 1 to 4, peaking at
 approximately 275 for 4-night stays. .A decline is observed from nights
 5 to 8, with the lowest average around 140 for 8-night stays. .There's a
 noticeable spike at 9 nights, likely influenced by a limited number of
@@ -1053,7 +1035,7 @@ nights, potentially due to fewer listings. .The trend from 25 to 30
 nights shows a gradual decrease in average prices.
 
 This analysis suggests that while short stays (1-4 nights) tend to have
-higher prices, there are specific minumum night where prices spike,
+higher prices, there are specific minimum night where prices spike,
 possibly influenced by limited listings.
 
 ```{r}
@@ -1076,7 +1058,7 @@ ggplot(weighted_avg_price, aes(x= as.factor(minimum_nights), y= weighted_avg, fi
 The scatter plot below visualises the relationship between the price of
 Airbnb listings and the minimum number of nights required for booking.
 
-.Nights 1 to 3 display a dense concentration of points, forming almost
+Nights 1 to 3 display a dense concentration of points, forming almost
 straight lines up to 800. .Nights 4 and 5 have a similar pattern up to
 around 400, with some scattered points beyond this range. .Night 6 shows
 a denser concentration below 200, with fewer scattered points above this
@@ -1123,7 +1105,7 @@ listings_data$min_nights_bin <- cut(listings_data$minimum_nights,
 #Heatmap
 ggplot(listings_data, aes(x= as.numeric(min_nights_bin), y= price)) +
   geom_bin2d(bins= 30, aes(fill = ..count..), color= "white")+
-  scale_fill_gradient(low= "white", high= "blue") +
+  scale_fill_gradient(low= "white", high= airbnb_color1) +
   labs(title = "Heatmap of Number of Minimmum Nights Category by Price", x= "Minimum Nights Category", y= "Price ($)") +
   theme_minimal() +
   scale_x_continuous(breaks= c(1,2,3,7,30), labels = c("1","2", "3", "4-7", "8-30"))
@@ -1232,7 +1214,7 @@ booking_by_min_nights <- listings_data %>%
 
 #Plotting
 ggplot(booking_by_min_nights, aes(x= minimum_nights, y= avg_booking_frequency_percentage)) +
-  geom_bar(stat= "identity", fill = "lightgreen") +
+  geom_bar(stat= "identity", fill = airbnb_color2) +
   labs(title= "Average Booking Frequency by Minimum Nights", x= "Minimum Nights", y= "Average Booking Frequency (%)")+
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust= 1))
@@ -1250,7 +1232,7 @@ available more frequently.
 ```{r}
 # Boxplot of Booking frequency %
 ggplot(listings_data, aes(y= booking_frequency_percentage)) +
-  geom_boxplot(fill= "salmon") +
+  geom_boxplot(fill= airbnb_color1) +
   labs(title= "Boxplot of Booking Frequency (%)", y= "Booking Frequency (%)") +
   theme_minimal()
 ```
@@ -1629,7 +1611,7 @@ which are listings that have a very large price, we want to focus on
 average listings, not in luxury ones. Furthermore, the density graph in
 the y-axis helps to determine where are the majority of listings
 concentrated in, we are choosing listings that have a price lower than
-\$350 per nigh. Finally, we have decided to exclude Hotel Rooms (n=6)
+USD350 per night and above USD50 per night. Finally, we have decided to exclude Hotel Rooms (n=6)
 and shared room (n=98) because they have very few listings.
 
 ```{r}
@@ -1662,15 +1644,16 @@ When we examine the distribution of occupancy rate across the two room
 types in analysis, we can observe that in Austin there are 4 times more
 Entire home/apt listings than private rooms, this can be considered as a
 limitation for our analysis but could also represent a huge opportunity
-for investors or current hosts. It can be seen that private rooms
-experience a higher occupancy rates than entire home/apt. The majority
+for investors or current hosts. 
+
+It can be seen that private rooms experience a higher occupancy rates than entire home/apt. The majority
 of the data of the data for private rooms is distributed along 60-100%
 of occupancy rates, while entire home/apt is distributed along the mean
 (53.81%). It can be seen that our Hypothesis 3 was not correct, the type
 of listings that enjoy higher occupancy rates are the ones that are
 offered as private rooms rather than Entire apartments. This insights
 could be transformed into opportunity for investors interested in
-renting apartments in Austin through Airbnb.Let's explore how higher
+renting apartments in Austin through Airbnb. Let's explore how higher
 occupancy rates are related to revenue.
 
 ```{r}
@@ -1690,8 +1673,7 @@ plt
 Even though, occupancy rate is higher in private room listings, entire
 home/apt enjoy higher earnings on average because the price per night is
 higher. However, entire apartments that have more than 1 room could
-offer their listings as private room to increase occupancy rates and
-thus increase ROI per room.
+offer their listings as private room to increase occupancy rates and increase their revenue as a whole.Around 30% of the Entire Apt listings offered in Austin have more than 1 room, and thus we could use that data points to understand the revenue increase that a host could experience if they offered their listings as private room rentals.
 
 ```{r}
 austin_H3_3<- austin_H3_2 %>% 
@@ -1700,6 +1682,7 @@ austin_H3_3<- austin_H3_2 %>%
 
 austin_H3_3
 ```
+
 
 ```{r}
 #Create Data
@@ -1710,8 +1693,6 @@ private <- austin_H3_2  %>%
   filter(room_type=='Private room', !is.na(n_bedrooms)) %>% 
   select(n_bedrooms) 
 
-
- 
  
 #Make the plot
 hist(data.matrix(entire) , main="Distribution of number of bedrooms for entire apartment listings" , xlim=c(1,5), ylab="Density of Entire home/apt", xlab="Number of bedrooms per listing", ylim=c(0,0.9) , las=1 , col=airbnb_color1, breaks=10, density = 10, # Shading lines
