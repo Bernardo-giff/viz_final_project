@@ -717,6 +717,9 @@ is clean and in the right format.
 ```{r}
 #Cleaning Data
 
+#Remove dollar signs and commas, then convert to numeric (Prices in calendar and listings)
+listings_austin_min$price <- as.numeric(gsub("[$,]", "", listings_austin_min$price))
+
 #Convert Minimum Nights to integer
 listings_austin_min$minimum_nights <- as.integer(listings_austin_min$minimum_nights)
 
@@ -1688,11 +1691,11 @@ ggplot(optimal_nights_data, aes(x= as.factor(minimum_nights), y= weighted_avg_re
   theme(axis.text.x = element_text(angle= 45, hjust = 1))
 ```
 
-However, it is inaccurate to say that the optimal minimum night for luxury is 9. Because there is only one luxury listing at 54,000. 
+However, it is inaccurate to say that the optimal minimum night for luxury is 9. Because there is only one luxury listing at 197,000. 
 
 ```{r}
 #Filter for Luxury Listings with minimum nights of 9
-luxury_min_night_9 <- filtered_min_night_data %>%
+luxury_min_night_9 <- listings_austin_min %>%
   filter(price_category == "Luxury", minimum_nights == 9) %>%
   summarise(
     number_of_listings= n(),
