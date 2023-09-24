@@ -1778,7 +1778,6 @@ p3_H3 <- ggplot(data, aes(x=x, y=y)) +
   ylab("Avg % increase in revenue") +
   ggtitle("Avg % increase in revenue for Entire Apt that offer their listings as Private Rooms") 
 
-par(bg="white")
 p3_H3
 ```
 
