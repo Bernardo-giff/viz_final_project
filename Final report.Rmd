@@ -78,8 +78,6 @@ Inflation index for the USA
 
 # Hypotheses
 
-### Return on Investment for Austin is better than for San Francisco and New York.
-
 One of our hypotheses is that the return on investment for houses bought
 to become Airbnb rent outs in Austin might be better than similar
 investments in other big cities in the US. This is motivated by the
@@ -97,7 +95,7 @@ The idea is to show that the present ROI in Austin make sense. This can
 generate valuable insight to investors becomes several studies point to
 the continuation of the growth of Texas, with Austin leading the pack.
 
-### Data preparation and initial analysis
+## Data preparation and initial analysis
 
 We will focus at first on the listings data. We will be comparing 3
 cities: NYC, SF and Austin. We need to coerce the neighbourhood cleansed
@@ -443,7 +441,7 @@ print(p)
 
 ```
 
-### Rent differences
+## Rent differences
 
 Now we need to compare the data we repared with the regular rent data so
 that we can estimate the ROI of Airbnb's in comparison to regular
@@ -1485,7 +1483,6 @@ if (length(discrepancies) > 0) {
 
 ```
 
-###Start of Analysis####
 
 The results below indicate that listings with a shorter minimum nights
 requirement (1-7 nights) tend to generate higher revenue on average
@@ -1813,6 +1810,8 @@ the host have blocked these listings. - Given the Airbnb data, there is
 no way to distinguish between rentals that have been blocked by the host
 or haven been rented, for simplicity we will assume that rentals that
 are not available, have been rented by users.
+
+The crucial insight here is that investors eyeing one-bedroom apartments should list them as entire apartments to maximize revenue, even though occupancy rates may be lower. Conversely, investors targeting multi-bedroom apartments should list them as private rooms to optimize both occupancy rates and revenue. By adopting this approach, they can expect to see an impressive average revenue increase of approximately 65% compared to offering the entire apartment as a single listing.
 
 ```{r}
 # Removing dollar sign and commas
