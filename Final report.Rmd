@@ -13,8 +13,8 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 
 
-install.packages("ggstatsplot")
-install.packages("kableExtra")
+#install.packages("ggstatsplot")
+#install.packages("kableExtra")
 
 rm(list=ls())
 
@@ -1787,7 +1787,7 @@ ggplot(optimal_nights_data, aes(x= as.factor(minimum_nights), y= weighted_avg_re
   scale_color_manual(values= c("Budget"=airbnb_color4, "Mid-Range"= airbnb_color2, "Premium"= airbnb_color3, "Luxury"= airbnb_color1))
 ```
 
-# Entire apartment vs. private rooms
+## Entire apartment vs. private rooms
 
 Apartment vs. Room Listings Occupancy: Our hypothesis suggests that
 listings offering entire apartments enjoy better occupancy rates
@@ -1811,7 +1811,6 @@ no way to distinguish between rentals that have been blocked by the host
 or haven been rented, for simplicity we will assume that rentals that
 are not available, have been rented by users.
 
-The crucial insight here is that investors eyeing one-bedroom apartments should list them as entire apartments to maximize revenue, even though occupancy rates may be lower. Conversely, investors targeting multi-bedroom apartments should list them as private rooms to optimize both occupancy rates and revenue. By adopting this approach, they can expect to see an impressive average revenue increase of approximately 65% compared to offering the entire apartment as a single listing.
 
 ```{r}
 # Removing dollar sign and commas
@@ -1964,6 +1963,8 @@ Rev_Entire
 
 It can be seen from the graph that entire apartments that have 2 or more
 bedroom can benefit from listings it as a private room.
+
+The crucial insight here is that investors eyeing one-bedroom apartments should list them as entire apartments to maximize revenue, even though occupancy rates may be lower. Conversely, investors targeting multi-bedroom apartments should list them as private rooms to optimize both occupancy rates and revenue. By adopting this approach, they can expect to see an impressive average revenue increase of approximately 65% compared to offering the entire apartment as a single listing.
 
 ```{r}
 # Create data
