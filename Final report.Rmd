@@ -1344,17 +1344,19 @@ median_revenue <- median(listings_austin_min$estimated_revenue, na.rm = TRUE)
 
 # Plotting the histogram with enhanced colors and annotations
 ggplot(listings_austin_min, aes(x = estimated_revenue)) +
-  geom_histogram(aes(y = ..density..), binwidth = 50, fill = "#66c2a5", color = "#238b45", alpha = 0.7) +
-  geom_density(color = "#d95f02") +
-  geom_vline(aes(xintercept = mean_revenue), color = "#1f78b4", linetype = "dashed", size = 1) +
-  geom_vline(aes(xintercept = median_revenue), color = "#e7298a", linetype = "dashed", size = 1) +
+  #geom_histogram(aes(y = ..density..), binwidth = 50, fill = "#66c2a5", color = "#238b45", alpha = 0.7) +
+  geom_density(color = airbnb_color1, fill=airbnb_color1, alpha=0.2) +
+  geom_vline(aes(xintercept = mean_revenue), color = airbnb_color2,linetype = "dashed", size = 1) +
+  geom_vline(aes(xintercept = median_revenue), color = airbnb_color2, linetype = "dashed", size = 1) +
   labs(title = "Distribution of Estimated Revenues (Capped at 130K)",
        x = "Estimated Revenue in Thousands",
        y = "Density") +
   theme_minimal() +
-  annotate("text", x = mean_revenue, y = 0.0001, label = paste("Mean:", scales::dollar(round(mean_revenue, 2))), vjust = -1, color = "#1f78b4") +
-  annotate("text", x = median_revenue, y = 0.0001, label = paste("Median:", scales::dollar(round(median_revenue, 2))), vjust = -2, color = "#e7298a") +
+  theme(panel.grid = element_blank()) + 
+  annotate("text", x = mean_revenue, y = 0.00001, label = paste("Mean:", scales::dollar(round(mean_revenue, 2))), vjust = -1, color = "black") +
+  annotate("text", x = median_revenue, y = 0.000005, label = paste("Median:", scales::dollar(round(median_revenue, 2))), vjust = -2, color = "black") +
   scale_x_continuous(labels = scales::dollar_format(scale = 1e-3, prefix = "$"), limits = c(0, 130000))  # Setting the upper x-axis limit to $130,000 and formatting labels as dollars
+
 ```
 
 The correlation analysis highlights the significant impact of minimum
