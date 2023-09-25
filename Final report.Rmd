@@ -1717,7 +1717,8 @@ ggplot(optimal_nights_data, aes(x= as.factor(minimum_nights), y= weighted_avg_re
   geom_point(size=3) +
   labs(title= "Weighted Average Revenue by Minimum Nights and Price Category", x= "Minimum Nights", y= "Weighted Average Revenue ($)", color= "Price Category")+
   theme_minimal() +
-  theme(axis.text.x = element_text(angle= 45, hjust = 1))
+  theme(axis.text.x = element_text(angle= 45, hjust = 1),
+        panel.grid = element_blank())
 ```
 
 However, it is inaccurate to say that the optimal minimum night for
@@ -1749,9 +1750,10 @@ data.
 ```{r}
 #Histogram of Number of Beds
 ggplot(listings_austin_min, aes(x= minimum_nights))+
-  geom_histogram(binwidth = 1, fill= "skyblue", color= "black") +
+  geom_histogram(binwidth = 1, fill= airbnb_color1, color= "black") +
   labs(title= "Distribution of Minimum Nights", x= "Minimum Nights", y= "Number of Listings") +
-  theme_minimal()
+  theme_minimal() + 
+  theme(panel.grid =element_blank())
 ```
 
 For the luxury and premium price category, the optimal minimum night to
